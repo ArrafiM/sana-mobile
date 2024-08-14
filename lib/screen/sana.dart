@@ -8,6 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sana_mobile/shared/circle_loop.dart';
 import 'package:sana_mobile/shared/my_position.dart';
+import 'package:geolocator/geolocator.dart';
 // import 'package:geolocator/geolocator.dart';
 
 // import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -31,12 +32,19 @@ class _SanaScreenState extends State<SanaScreen> {
     topRight: Radius.circular(24.0),
   );
 
+  final LocationSettings locationSettings = const LocationSettings(
+    accuracy: LocationAccuracy.high,
+    distanceFilter: 100,
+    );
+  
+
   void _getData() {
     locations = LocationModel.getlocations();
   }
 
   @override
   Widget build(BuildContext context) {
+    
     _getData();
     return Scaffold(
       appBar: _homeAppBar(context),
@@ -192,12 +200,20 @@ class _SanaScreenState extends State<SanaScreen> {
   }
 
   FlutterMap _mapView() {
+    double lat = 37.4219983;
+    double long = -122.084;
+    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+    (Position? position) {
+        print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
+    });
+    // lat = position!.latitude;
+    // long = position.longitude;
     return FlutterMap(
-      options: const MapOptions(
-        initialCenter: LatLng(-6.9097493, 107.592825),
-        // initialZoom: 18,
-        // minZoom: 0,
-        // maxZoom: 25,
+      options: MapOptions(
+        initialCenter: LatLng(lat, long),
+        initialZoom: 18,
+        minZoom: 0,
+        maxZoom: 25,
       ),
       children: [
         TileLayer(
@@ -214,18 +230,18 @@ class _SanaScreenState extends State<SanaScreen> {
         //   ],
         // ),
         CurrentLocationLayer(
-          style: LocationMarkerStyle(
-            marker: const DefaultLocationMarker(
-              color: Colors.green,
-              child: Icon(
-                Icons.person,
-                color: Colors.white,
-              ),
+          style:  LocationMarkerStyle(
+            marker:  const DefaultLocationMarker(
+              color: Colors.blue,
+              // child: Icon(
+              //   Icons.person,
+              //   color: Colors.white,
+              // ),
             ),
-            markerSize: const Size.square(40),
-            accuracyCircleColor: Colors.green.withOpacity(0.1),
-            headingSectorColor: Colors.green.withOpacity(0.8),
-            headingSectorRadius: 120,
+            markerSize:  const Size.square(30),
+            accuracyCircleColor: Colors.blue.withOpacity(0.1),
+            headingSectorColor: Colors.blue.withOpacity(0.5),
+            headingSectorRadius: 100,
           ),
           moveAnimationDuration: Duration.zero, // disable animation
         ),
