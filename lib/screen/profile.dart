@@ -1,6 +1,8 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:sana_mobile/models/image_model.dart';
+import 'package:sana_mobile/screen/image_viewer_screen.dart';
 import 'package:sana_mobile/services/user_services.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -13,6 +15,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   List users = [];
   int totalData = 0;
+  List<ImageModel> images = [];
+
+  void _getInitialInfo() {
+    images = ImageModel.getImages();
+  }
 
   @override
   void initState() {
@@ -22,129 +29,160 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _getInitialInfo();
     return Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 0,
-        ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _profileData(),
-            const SizedBox(
-              height: 10,
-            ),
-            // _myLibrary()
-          ],
-        ));
+      appBar: AppBar(
+        toolbarHeight: 0,
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _profileData(),
+          const SizedBox(
+            height: 10,
+          ),
+          _myLibrary()
+        ],
+      )
+    );
   }
 
   Container _myLibrary() {
     return Container(
-        height: 585,
+        height: MediaQuery.of(context).size.height - 213,
         decoration: BoxDecoration(
             // color: Colors.red[400],
             borderRadius: BorderRadius.circular(10)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 585,
+        child: 
+        Column(children: [
+          if (images.isEmpty)
+            const Center(
+              child: Text("Share your moment",
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),)
+            )
+          else
+          Container(
+              height: MediaQuery.of(context).size.height - 213,
               decoration: BoxDecoration(
-                  // color: Colors.blue[300],
+                  // color: Colors.green[100],
                   borderRadius: BorderRadius.circular(10)),
-              child: ListView.builder(
-                  itemCount: 6,
-                  itemBuilder: (context, index) {
-                    // final item = users[index] as Map;
-                    int itemNumber = index;
-                    if (index != 0) {
-                      if (itemNumber % 2 == 0) {
-                        //genap
-                        itemNumber = itemNumber + (index + itemNumber);
-                      } else {
-                        //ganjil
-                        itemNumber = itemNumber + (index + itemNumber);
-                      }
-                    }
-                    return SizedBox(
-                      height: 131,
-                      // decoration: BoxDecoration(
-                      //   color: Colors.green[300],
-                      //   borderRadius: BorderRadius.circular(10)
-                      // ),
-                      child: Row(
-                        children: [
-                          Container(
-                            height: 130,
-                            width: 130,
-                            decoration: BoxDecoration(
-                              color: Colors.blue[200],
-                              // borderRadius: BorderRadius.circular(10),
-                              // border: const Border(
-                              //   right:
-                              //       BorderSide(color: Colors.white, width: 1),
-                              //   bottom:
-                              //       BorderSide(color: Colors.white, width: 1),
-                              // )
+                  child: ListView.builder(
+            itemCount: _imageLength(),
+            itemBuilder: (context, index) {
+              // final item = users[index] as Map;
+              int itemNumber = _itemNumber(index);
+              int idxRow1 = itemNumber;
+              int idxRow2 = itemNumber + 1;
+              int idxRow3 = itemNumber + 2;
+              return SizedBox(
+                height: 132,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height: 130,
+                      width: (MediaQuery.of(context).size.width  / 3) - 1,
+                      child: idxRow1 < images.length
+                      ? GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ImageViewerScreen(
+                                images: images, // Daftar ImageModel Anda
+                                initialIndex: idxRow1, // Indeks gambar yang diklik
+                              ),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Text('$itemNumber'),
+                          );
+                        },
+                        child: Image.asset(
+                          images[idxRow1].photo,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                      : null,
+                    ),
+                    const SizedBox(
+                      width: 1,
+                    ),
+                    SizedBox(
+                      height: 130,
+                      width: (MediaQuery.of(context).size.width  / 3) - 1,
+                      child: idxRow2 < images.length
+                      ? GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ImageViewerScreen(
+                                images: images, // Daftar ImageModel Anda
+                                initialIndex: idxRow2, // Indeks gambar yang diklik
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            width: 1,
-                          ),
-                          Container(
-                            height: 130,
-                            width: 130,
-                            decoration: BoxDecoration(
-                              color: Colors.blue[200],
-                              // borderRadius: BorderRadius.circular(10),
-                              // border: const Border(
-                              //   right:
-                              //       BorderSide(color: Colors.white, width: 1),
-                              //   bottom:
-                              //       BorderSide(color: Colors.white, width: 1),
-                              // )
+                          );
+                        },
+                        child: Image.asset(
+                          images[idxRow2].photo,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                      : null,
+                    ),
+                    const SizedBox(
+                      width: 1,
+                    ),
+                    SizedBox(
+                      height: 130,
+                      width: (MediaQuery.of(context).size.width  / 3) - 1,
+                      child: idxRow3 < images.length
+                      ? GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ImageViewerScreen(
+                                images: images, // Daftar ImageModel Anda
+                                initialIndex: idxRow3, // Indeks gambar yang diklik
+                              ),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Text('${itemNumber + 1}'),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 1,
-                          ),
-                          Container(
-                            height: 130,
-                            width: 130,
-                            decoration: BoxDecoration(
-                              color: Colors.blue[200],
-                              // borderRadius: BorderRadius.circular(10),
-                              // border: const Border(
-                              //     bottom: BorderSide(
-                              //         color: Colors.white, width: 1))
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Text('${itemNumber + 2}'),
-                            ),
-                          )
-                        ],
-                      ),
-                      // child: ListTile(
-                      //   leading: CircleAvatar(
-                      //     child: Text('${index + 1}'),
-                      //   ),
-                      //   title: Text(item['email']),
-                      //   subtitle: Text(item['birth_date'] ?? '-'),
-                      // ),
-                    );
-                  }),
-            ),
-          ],
-        ));
+                          );
+                        },
+                        child: Image.asset(
+                          images[idxRow3].photo,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                      : null,
+                    ),
+                  ],
+                ),
+            );
+          }
+        ),)
+      ],)
+    );
+  }
+
+  int _itemNumber(index){
+    var itemNumber = index;
+    if (index != 0) {
+      if (itemNumber % 2 == 0) {
+        //genap
+        itemNumber = itemNumber + (index + itemNumber);
+      } else {
+        //ganjil
+        itemNumber = itemNumber + (index + itemNumber);
+      }
+    }
+    return itemNumber;
+  }
+
+  int _imageLength() {
+    int imagesLength = images.length;
+    print("images length: $imagesLength");
+    var lastImage = images[imagesLength -1];
+    print("image: $lastImage");
+    var row = imagesLength / 3;
+    return row.ceil();
   }
 
   Container _profileData() {
