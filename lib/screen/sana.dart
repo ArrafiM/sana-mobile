@@ -1,12 +1,15 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 // import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:sana_mobile/models/detected_location.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sana_mobile/shared/circle_loop.dart';
 import 'package:sana_mobile/shared/my_position.dart';
+// import 'package:geolocator/geolocator.dart';
+
 // import 'package:sliding_up_panel/sliding_up_panel.dart';
 // import 'package:url_launcher/url_launcher.dart';
 
@@ -192,37 +195,40 @@ class _SanaScreenState extends State<SanaScreen> {
     return FlutterMap(
       options: const MapOptions(
         initialCenter: LatLng(-6.9097493, 107.592825),
-        initialZoom: 18,
+        // initialZoom: 18,
+        // minZoom: 0,
+        // maxZoom: 25,
       ),
       children: [
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.app',
         ),
-        RichAttributionWidget(
-          attributions: [
-            TextSourceAttribution(
-              'OpenStreetMap contributors',
-              onTap: () => print("tap map"),
-            ),
-          ],
-        ),
-        // CurrentLocationLayer(
-        //   style: LocationMarkerStyle(
-        //     marker: const DefaultLocationMarker(
-        //       color: Colors.green,
-        //       child: Icon(
-        //         Icons.person,
-        //         color: Colors.white,
-        //       ),
+        // CurrentLocationLayer(),
+        // RichAttributionWidget(
+        //   attributions: [
+        //     TextSourceAttribution(
+        //       'OpenStreetMap contributors',
+        //       onTap: () => print("tap map"),
         //     ),
-        //     markerSize: const Size.square(40),
-        //     accuracyCircleColor: Colors.green.withOpacity(0.1),
-        //     headingSectorColor: Colors.green.withOpacity(0.8),
-        //     headingSectorRadius: 120,
-        //   ),
-        //   moveAnimationDuration: Duration.zero, // disable animation
+        //   ],
         // ),
+        CurrentLocationLayer(
+          style: LocationMarkerStyle(
+            marker: const DefaultLocationMarker(
+              color: Colors.green,
+              child: Icon(
+                Icons.person,
+                color: Colors.white,
+              ),
+            ),
+            markerSize: const Size.square(40),
+            accuracyCircleColor: Colors.green.withOpacity(0.1),
+            headingSectorColor: Colors.green.withOpacity(0.8),
+            headingSectorRadius: 120,
+          ),
+          moveAnimationDuration: Duration.zero, // disable animation
+        ),
       ],
     );
   }

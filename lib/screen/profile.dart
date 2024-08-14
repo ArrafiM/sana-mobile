@@ -49,10 +49,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Container _myLibrary() {
     return Container(
-        height: MediaQuery.of(context).size.height - 213,
         decoration: BoxDecoration(
             // color: Colors.red[400],
-            borderRadius: BorderRadius.circular(10)),
+          borderRadius: BorderRadius.circular(10)),
         child: 
         Column(children: [
           if (images.isEmpty)
@@ -61,12 +60,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),)
             )
           else
-          Container(
-              height: MediaQuery.of(context).size.height - 213,
-              decoration: BoxDecoration(
-                  // color: Colors.green[100],
-                  borderRadius: BorderRadius.circular(10)),
-                  child: ListView.builder(
+          SizedBox(
+            height: MediaQuery.of(context).size.height - 215,
+            child: ListView.builder(
             itemCount: _imageLength(),
             itemBuilder: (context, index) {
               // final item = users[index] as Map;
@@ -222,25 +218,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-                height: 70,
-                width: 70,
-                decoration: BoxDecoration(
-                    color: Colors.blue[900],
-                    borderRadius: BorderRadius.circular(100)),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      height: 60,
-                      width: 60,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(100)),
-                      child: const Icon(Icons.person),
-                    ),
-                  ],
-                )),
+            SizedBox(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 70,
+                    width: 70,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(100)),
+                    child: const CircleAvatar(
+                      backgroundImage: NetworkImage('https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'),
+                      radius: 50,
+                    )
+                    // const Icon(Icons.person),
+                  ),
+                ],
+              )),
             const Padding(
                 padding: EdgeInsets.only(left: 10),
                 child: Column(
