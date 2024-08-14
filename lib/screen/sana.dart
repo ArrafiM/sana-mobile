@@ -26,6 +26,8 @@ class _SanaScreenState extends State<SanaScreen> {
   double circleOpacity = 1;
 
   List<LocationModel> locations = [];
+  double lat = 0.0;
+  double long = 0.0;
 
   BorderRadiusGeometry radius = const BorderRadius.only(
     topLeft: Radius.circular(24.0),
@@ -40,6 +42,14 @@ class _SanaScreenState extends State<SanaScreen> {
 
   void _getData() {
     locations = LocationModel.getlocations();
+    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+    (Position? position) {
+        setState(() {
+          lat = position!.latitude;
+          long = position.longitude;
+        });
+        print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
+    });
   }
 
   @override
@@ -49,7 +59,11 @@ class _SanaScreenState extends State<SanaScreen> {
     return Scaffold(
       appBar: _homeAppBar(context),
       // body: _contentData(context),
-      body: _mapView(),
+      body: (lat == 0.0 && long == 0.0)
+      ? const Center(
+          child: CircularProgressIndicator(),
+        )
+      : _mapView(lat, long),
       floatingActionButton: Column(
         children: [
           SizedBox(
@@ -199,15 +213,7 @@ class _SanaScreenState extends State<SanaScreen> {
     );
   }
 
-  FlutterMap _mapView() {
-    double lat = 37.4219983;
-    double long = -122.084;
-    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-    (Position? position) {
-        print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
-    });
-    // lat = position!.latitude;
-    // long = position.longitude;
+  FlutterMap _mapView(lat, long) {
     return FlutterMap(
       options: MapOptions(
         initialCenter: LatLng(lat, long),
