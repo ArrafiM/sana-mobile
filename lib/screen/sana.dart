@@ -6,7 +6,7 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:sana_mobile/models/detected_location.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:sana_mobile/models/mylocation_model.dart';
+// import 'package:sana_mobile/models/mylocation_model.dart';
 import 'package:sana_mobile/services/location_services.dart';
 import 'package:sana_mobile/shared/circle_loop.dart';
 import 'package:sana_mobile/shared/my_position.dart';
@@ -23,8 +23,9 @@ class SanaScreen extends StatefulWidget {
   State<SanaScreen> createState() => _SanaScreenState();
 }
 
-class _SanaScreenState extends State<SanaScreen> {
-  var myLocation = <MyLocationModel>{};
+class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
+  // var myLocation = <MyLocationModel>{};
+  Map<String, dynamic> myLocation = {};
 
   double circleWidth = 0;
   double circleOpacity = 1;
@@ -46,25 +47,61 @@ class _SanaScreenState extends State<SanaScreen> {
   @override
   void initState() {
     super.initState();
+    _getData();
     fetchLocation();
+    WidgetsBinding.instance.addObserver(this);
+    _getCurrentLocation();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Get location when the screen is active again
+      _getCurrentLocation();
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      print("Location latlong updated!");
+      setState(() {
+        lat = position.latitude;
+        long = position.longitude;
+      });
+      print('latitude: $lat, longitude: $long ');
+    } else {
+      // Handle case where permission is denied
+      print("Location permission denied");
+    }
   }
 
   void _getData() {
     locations = LocationModel.getlocations();
     int lLength = locations.length;
     print("location length $lLength");
-    Geolocator.getPositionStream(locationSettings: locationSettings)
-        .listen((Position? position) {
-      lat = position!.latitude;
-      long = position.longitude;
-      // print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
-    });
+    // Geolocator.getPositionStream(locationSettings: locationSettings)
+    //     .listen((Position? position) {
+    //   lat = position!.latitude;
+    //   long = position.longitude;
+    //   // print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
+    // });
+    // print('lat: $lat, long: $long');
   }
 
   @override
   Widget build(BuildContext context) {
-    _getData();
-    print("$myLocation");
     return Scaffold(
       appBar: _homeAppBar(context),
       // body: _contentData(context),
@@ -388,9 +425,13 @@ class _SanaScreenState extends State<SanaScreen> {
     final response = await LocationServices.fetchMyLocation();
     if (response != null) {
       setState(() {
-        var data = response['data'];
-        myLocation = data;
-        print("data fetch location: $data");
+        myLocation = response['data'];
+        
+        print("fetch location: ${response['data']}");
+        // lat = double.parse(myLocation['latitude']);
+        // long = double.parse( myLocation['longitude']);
+        print("lat: ${myLocation['latitude']}");
+        print("long: ${myLocation['longitude']}");
       });
     } else {
       // const SnackBar(content: Text("Something went Wrong"));
