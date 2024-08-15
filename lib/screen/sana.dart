@@ -6,6 +6,8 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:sana_mobile/models/detected_location.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sana_mobile/models/mylocation_model.dart';
+import 'package:sana_mobile/services/location_services.dart';
 import 'package:sana_mobile/shared/circle_loop.dart';
 import 'package:sana_mobile/shared/my_position.dart';
 import 'package:geolocator/geolocator.dart';
@@ -22,6 +24,8 @@ class SanaScreen extends StatefulWidget {
 }
 
 class _SanaScreenState extends State<SanaScreen> {
+  var myLocation = <MyLocationModel>{};
+
   double circleWidth = 0;
   double circleOpacity = 1;
 
@@ -37,33 +41,38 @@ class _SanaScreenState extends State<SanaScreen> {
   final LocationSettings locationSettings = const LocationSettings(
     accuracy: LocationAccuracy.high,
     distanceFilter: 100,
-    );
-  
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    fetchLocation();
+  }
 
   void _getData() {
     locations = LocationModel.getlocations();
-    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-    (Position? position) {
-        setState(() {
-          lat = position!.latitude;
-          long = position.longitude;
-        });
-        print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
+    int lLength = locations.length;
+    print("location length $lLength");
+    Geolocator.getPositionStream(locationSettings: locationSettings)
+        .listen((Position? position) {
+      lat = position!.latitude;
+      long = position.longitude;
+      // print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    
     _getData();
+    print("$myLocation");
     return Scaffold(
       appBar: _homeAppBar(context),
       // body: _contentData(context),
       body: (lat == 0.0 && long == 0.0)
-      ? const Center(
-          child: CircularProgressIndicator(),
-        )
-      : _mapView(lat, long),
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : _mapView(lat, long),
       floatingActionButton: Column(
         children: [
           SizedBox(
@@ -218,7 +227,7 @@ class _SanaScreenState extends State<SanaScreen> {
       options: MapOptions(
         initialCenter: LatLng(lat, long),
         initialZoom: 18,
-        minZoom: 0,
+        minZoom: 30,
         maxZoom: 25,
       ),
       children: [
@@ -236,15 +245,15 @@ class _SanaScreenState extends State<SanaScreen> {
         //   ],
         // ),
         CurrentLocationLayer(
-          style:  LocationMarkerStyle(
-            marker:  const DefaultLocationMarker(
+          style: LocationMarkerStyle(
+            marker: const DefaultLocationMarker(
               color: Colors.blue,
               // child: Icon(
               //   Icons.person,
               //   color: Colors.white,
               // ),
             ),
-            markerSize:  const Size.square(30),
+            markerSize: const Size.square(30),
             accuracyCircleColor: Colors.blue.withOpacity(0.1),
             headingSectorColor: Colors.blue.withOpacity(0.5),
             headingSectorRadius: 100,
@@ -373,5 +382,18 @@ class _SanaScreenState extends State<SanaScreen> {
         );
       },
     );
+  }
+
+  Future<void> fetchLocation() async {
+    final response = await LocationServices.fetchMyLocation();
+    if (response != null) {
+      setState(() {
+        var data = response['data'];
+        myLocation = data;
+        print("data fetch location: $data");
+      });
+    } else {
+      // const SnackBar(content: Text("Something went Wrong"));
+    }
   }
 }
