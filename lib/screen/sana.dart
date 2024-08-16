@@ -7,6 +7,7 @@ import 'package:sana_mobile/models/detected_location.dart';
 import 'package:sana_mobile/services/location_services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sana_mobile/shared/map_sana.dart';
+import 'package:sana_mobile/shared/map_topbar.dart';
 
 // import 'package:sliding_up_panel/sliding_up_panel.dart';
 // import 'package:url_launcher/url_launcher.dart';
@@ -89,7 +90,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _homeAppBar(context),
+      appBar: const MapTopbar(),
       body: (lat == 0.0 || long == 0.0)
           ? const Center(
               child: CircularProgressIndicator(),
@@ -190,87 +191,6 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   //         ],
   //       ));
   // }
-
-  // Stack _floatingButton(BuildContext context) {
-  //   return Stack(children: <Widget>[
-  //     // _searchField(),
-  //     Padding(
-  //       padding: const EdgeInsets.only(right: 10),
-  //       child: Align(
-  //         alignment: Alignment.bottomRight,
-  //         child: FloatingActionButton(
-  //           onPressed: () {
-  //             Navigator.of(context).push(
-  //               MaterialPageRoute(
-  //                 builder: (context) => const ChatScreen(),
-  //               ),
-  //             );
-  //           },
-  //           backgroundColor: Colors.blue[200],
-  //           child: const Icon(Icons.chat_rounded),
-  //         ),
-  //       ),
-  //     ),
-  //   ]);
-  // }
-
-  void showModalSheet(BuildContext context, data) {
-    if (data != null) {
-      print("modal dengan data: $data");
-    }
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 400,
-          width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            // mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // ignore: avoid_unnecessary_containers
-              Container(
-                padding: const EdgeInsets.only(top: 20, left: 20),
-                child: const Text('Modal BottomSheet'),
-              ),
-              ElevatedButton(
-                child: const Text('Close BottomSheet'),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  AppBar _homeAppBar(context) {
-    return AppBar(
-      title: const Text(
-        "SANA",
-        style: TextStyle(fontWeight: FontWeight.w800),
-      ),
-      actions: [
-        GestureDetector(
-          onTap: () {
-            showModalSheet(context, null);
-          },
-          child: Container(
-            decoration: BoxDecoration(
-                // color: Colors.blue[100],
-                borderRadius: BorderRadius.circular(10)),
-            alignment: Alignment.center,
-            margin: const EdgeInsets.all(10),
-            width: 40,
-            child: const Icon(Icons.more_horiz_rounded),
-          ),
-        )
-      ],
-    );
-  }
 
   Future<void> _fetchNearestLocations() async {
     final response = await LocationServices.fetchNearestLocations();

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sana_mobile/screen/home.dart';
 import 'package:sana_mobile/screen/profile.dart';
 import 'package:sana_mobile/screen/sana.dart';
-import 'package:sana_mobile/screen/chat_screen.dart';
+// import 'package:sana_mobile/screen/chat_screen.dart';
 // import 'package:sana_mobile/screen/menu.dart';
 // import 'package:sana_mobile/screen/message.dart';
 // import 'package:sana_mobile/screen/notification_screen.dart';
@@ -54,11 +54,11 @@ class _MainNavigationState extends State<MainNavigation> {
             activeIcon: Icon(Icons.radio_button_checked_sharp),
             label: 'Sana',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_outlined),
-            activeIcon: Icon(Icons.chat_rounded),
-            label: 'Chats',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.chat_outlined),
+          //   activeIcon: Icon(Icons.chat_rounded),
+          //   label: 'Chats',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
@@ -66,13 +66,13 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
         ],
         unselectedItemColor: Colors.black,
-        unselectedIconTheme: const IconThemeData(size: 30),
+        unselectedIconTheme: const IconThemeData(size: 20),
         unselectedLabelStyle:
             const TextStyle(color: Colors.black, fontSize: 12),
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blueGrey[900],
         selectedLabelStyle: optionStyle,
-        selectedIconTheme: const IconThemeData(size: 35),
+        selectedIconTheme: const IconThemeData(size: 25),
         onTap: _onItemTapped,
       ),
       body: <Widget>[
@@ -83,7 +83,7 @@ class _MainNavigationState extends State<MainNavigation> {
         const SanaScreen(),
 
         // Chat Page
-        const ChatScreen(),
+        // const ChatScreen(),
 
         // profile
         const ProfileScreen(),

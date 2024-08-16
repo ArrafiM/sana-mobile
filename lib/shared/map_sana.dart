@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sana_mobile/screen/detail_point.dart';
+// import 'package:sana_mobile/screen/chat_screen.dart';
+import 'package:sana_mobile/screen/list_point.dart';
 
 class MapSana extends StatefulWidget {
   const MapSana(
@@ -100,7 +103,13 @@ class _MapSanaState extends State<MapSana> {
                 rotate: true,
                 child: GestureDetector(
                   onTap: () {
-                    print("Tap on: ${widget.pinData[index]['title']}");
+                    // print("Tap on: ${widget.pinData[index]['title']}");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              DetailPoint(point: widget.pinData[index])),
+                    );
                     // showModalSheet(context, widget.pinData[index]['title']);
                   },
                   child: Stack(
@@ -137,6 +146,7 @@ class _MapSanaState extends State<MapSana> {
             padding: const EdgeInsets.all(20.0),
             child: FloatingActionButton(
               backgroundColor: Colors.blue,
+              heroTag: "currentLocation",
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50)),
               onPressed: () {
@@ -156,6 +166,36 @@ class _MapSanaState extends State<MapSana> {
             ),
           ),
         ),
+        Stack(children: <Widget>[
+          // _searchField(),
+          Padding(
+            padding: const EdgeInsets.only(left: 20, bottom: 20),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: FloatingActionButton(
+                heroTag: "pointList",
+                onPressed: () {
+                  // print("klik list map");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ListPoint(
+                        point: widget.pinData,
+                      ),
+                    ),
+                  );
+                  // Navigator.of(context).push(
+                  //   MaterialPageRoute(
+                  //     builder: (context) => const ChatScreen(),
+                  //   ),
+                  // );
+                },
+                backgroundColor: Colors.grey[600],
+                child: const Icon(Icons.view_list, color: Colors.white),
+              ),
+            ),
+          ),
+        ])
       ],
     );
   }
