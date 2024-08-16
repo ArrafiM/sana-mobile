@@ -3,17 +3,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-// import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:sana_mobile/models/detected_location.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-// import 'package:sana_mobile/models/mylocation_model.dart';
 import 'package:sana_mobile/services/location_services.dart';
-import 'package:sana_mobile/shared/circle_loop.dart';
-import 'package:sana_mobile/shared/my_position.dart';
 import 'package:geolocator/geolocator.dart';
-// import 'package:geolocator/geolocator.dart';
+import 'package:sana_mobile/shared/map_sana.dart';
 
 // import 'package:sliding_up_panel/sliding_up_panel.dart';
 // import 'package:url_launcher/url_launcher.dart';
@@ -26,10 +19,6 @@ class SanaScreen extends StatefulWidget {
 }
 
 class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
-  // var myLocation = <MyLocationModel>{};
-  late AlignOnUpdate _alignPositionOnUpdate;
-  late final StreamController<double?> _alignPositionStreamController;
-
   Map<String, dynamic> myLocation = {};
 
   double circleWidth = 0;
@@ -51,30 +40,18 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     distanceFilter: 100,
   );
 
-  // Function to convert hex color to Flutter's Color object
-  Color _hexToColor(String hex) {
-    hex = hex.replaceAll('#', '');
-    return Color(int.parse('FF$hex', radix: 16));
-  }
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    _alignPositionOnUpdate = AlignOnUpdate.always;
-
     _getCurrentLocation();
     _fetchNearestLocations();
-    _alignPositionStreamController = StreamController<double?>();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-
-    _alignPositionStreamController.close();
-
     super.dispose();
   }
 
@@ -113,7 +90,6 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _homeAppBar(context),
-      // body: _contentData(context),
       body: (lat == 0.0 || long == 0.0)
           ? const Center(
               child: CircularProgressIndicator(),
@@ -122,15 +98,11 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
               ? const Center(
                   child: CircularProgressIndicator(),
                 )
-              : _mapView(lat, long, context),
-      floatingActionButton: Column(
-        children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: 350,
-          )
-        ],
-      ),
+              : MapSana(
+                  lat: lat,
+                  long: long,
+                  pinData: pinData,
+                ),
       // body: DraggableScrollableSheet(
       //     builder: (BuildContext context, ScrollController scrollController) {
       //   return Container(
@@ -160,64 +132,64 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     );
   }
 
-  Column _contentData(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 10,
-        ),
-        // _mapView(),
-        // Center(
-        //   child: _radar(context),
-        // ),
-        SizedBox(
-          height: 5,
-        ),
-        // _nearestLocations(),
-      ],
-    );
-  }
+  // Column _contentData(BuildContext context) {
+  //   return const Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       SizedBox(
+  //         height: 10,
+  //       ),
+  //       // _mapView(),
+  //       // Center(
+  //       //   child: _radar(context),
+  //       // ),
+  //       SizedBox(
+  //         height: 5,
+  //       ),
+  //       // _nearestLocations(),
+  //     ],
+  //   );
+  // }
 
-  Column _nearestLocations() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 10, top: 10),
-          child: Text(
-            'Terdekat',
-            style: TextStyle(
-                color: Colors.black, fontSize: 18, fontWeight: FontWeight.w600),
-          ),
-        ),
-        const SizedBox(
-          height: 5,
-        ),
-        SizedBox(height: 245, child: _locations())
-      ],
-    );
-  }
+  // Column _nearestLocations() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       const Padding(
+  //         padding: EdgeInsets.only(left: 10, top: 10),
+  //         child: Text(
+  //           'Terdekat',
+  //           style: TextStyle(
+  //               color: Colors.black, fontSize: 18, fontWeight: FontWeight.w600),
+  //         ),
+  //       ),
+  //       const SizedBox(
+  //         height: 5,
+  //       ),
+  //       SizedBox(height: 245, child: _locations())
+  //     ],
+  //   );
+  // }
 
-  Container _radar(BuildContext context) {
-    return Container(
-        width: MediaQuery.of(context).size.width,
-        height: 350,
-        decoration:
-            BoxDecoration(color: Colors.blue[100], shape: BoxShape.circle),
-        child: const Stack(
-          alignment: Alignment.center,
-          children: [
-            Center(
-              child: CircleLoop(time: 3),
-            ),
-            Center(
-              child: MyPosition(),
-            ),
-            // _floatingButton(context)
-          ],
-        ));
-  }
+  // Container _radar(BuildContext context) {
+  //   return Container(
+  //       width: MediaQuery.of(context).size.width,
+  //       height: 350,
+  //       decoration:
+  //           BoxDecoration(color: Colors.blue[100], shape: BoxShape.circle),
+  //       child: const Stack(
+  //         alignment: Alignment.center,
+  //         children: [
+  //           Center(
+  //             child: CircleLoop(time: 3),
+  //           ),
+  //           Center(
+  //             child: MyPosition(),
+  //           ),
+  //           // _floatingButton(context)
+  //         ],
+  //       ));
+  // }
 
   // Stack _floatingButton(BuildContext context) {
   //   return Stack(children: <Widget>[
@@ -275,125 +247,6 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     );
   }
 
-  FlutterMap _mapView(lat, long, context) {
-    return FlutterMap(
-      options: MapOptions(
-        initialCenter: LatLng(lat, long),
-        initialZoom: 18,
-        minZoom: 0,
-        maxZoom: 50,
-        onPositionChanged: (MapCamera camera, bool hasGesture) {
-          if (hasGesture && _alignPositionOnUpdate != AlignOnUpdate.never) {
-            setState(
-              () => _alignPositionOnUpdate = AlignOnUpdate.never,
-            );
-          }
-        },
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'com.example.app',
-        ),
-        // CurrentLocationLayer(),
-        // RichAttributionWidget(
-        //   attributions: [
-        //     TextSourceAttribution(
-        //       'OpenStreetMap contributors',
-        //       onTap: () => print("tap map"),
-        //     ),
-        //   ],
-        // ),
-        CurrentLocationLayer(
-          style: LocationMarkerStyle(
-            marker: const DefaultLocationMarker(
-              color: Colors.blue,
-              // child: Icon(
-              //   Icons.person,
-              //   color: Colors.white,
-              // ),
-            ),
-            markerSize: const Size.square(30),
-            accuracyCircleColor: Colors.blue.withOpacity(0.1),
-            headingSectorColor: Colors.blue.withOpacity(0.5),
-            headingSectorRadius: 100,
-          ),
-          moveAnimationDuration: Duration.zero, // disable animation
-          alignPositionStream: _alignPositionStreamController.stream,
-          alignPositionOnUpdate: _alignPositionOnUpdate,
-        ),
-        MarkerLayer(
-          markers: List.generate(pinData.length, (index) {
-            return Marker(
-                point: LatLng(
-                  pinData[index]['latitude'],
-                  pinData[index]['longitude'],
-                ),
-                width: 80,
-                height: 50,
-                rotate: true,
-                child: GestureDetector(
-                  onTap: () {
-                    print("Tap on: ${pinData[index]['title']}");
-                    showModalSheet(context, pinData[index]['title']);
-                  },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned(
-                        top: 0,
-                        child: Text(
-                          pinData[index]['title'],
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 5,
-                        bottom: 0,
-                        child: Icon(
-                          Icons.location_on,
-                          color: _hexToColor(pinData[index]['color']),
-                          size: 30,
-                        ),
-                      ),
-                    ],
-                  ),
-                ));
-          }),
-        ),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: FloatingActionButton(
-              backgroundColor: Colors.blue,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50)),
-              onPressed: () {
-                // Align the location marker to the center of the map widget
-                // on location update until user interact with the map.
-                setState(
-                  () => _alignPositionOnUpdate = AlignOnUpdate.always,
-                );
-                // Align the location marker to the center of the map widget
-                // and zoom the map to level 18.
-                _alignPositionStreamController.add(18);
-              },
-              child: const Icon(
-                Icons.my_location,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   AppBar _homeAppBar(context) {
     return AppBar(
       title: const Text(
@@ -417,118 +270,6 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
         )
       ],
     );
-  }
-
-  ListView _locations() {
-    return ListView.separated(
-      itemCount: locations.length,
-      shrinkWrap: true,
-      scrollDirection: Axis.vertical,
-      separatorBuilder: (context, index) => const SizedBox(
-        height: 10,
-      ),
-      padding: const EdgeInsets.only(left: 10, right: 10),
-      itemBuilder: (context, index) {
-        return GestureDetector(
-          onTap: () {
-            print('name : ${locations[index].name}');
-          },
-          child: Container(
-            height: 80,
-            padding: const EdgeInsets.only(left: 5),
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              // borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                        padding:
-                            const EdgeInsets.only(left: 5, right: 5, top: 5),
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                              fontSize: 16),
-                        )),
-                  ],
-                ),
-                Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: CircleAvatar(
-                      backgroundImage: AssetImage(locations[index].photo),
-                      radius: 35,
-                    )),
-                const SizedBox(
-                  width: 10,
-                ),
-                Container(
-                  width: 260,
-                  padding: const EdgeInsets.only(right: 5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            locations[index].name,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                                fontSize: 16),
-                          ),
-                          const Text(
-                            'Location: ',
-                          ),
-                        ],
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          print('Message to: ${locations[index].name}');
-                        },
-                        child: SizedBox(
-                          height: 60,
-                          width: 60,
-                          child: Icon(
-                            Icons.chat_bubble,
-                            size: 30,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> fetchLocation() async {
-    final response = await LocationServices.fetchMyLocation();
-    if (response != null) {
-      setState(() {
-        myLocation = response['data'];
-
-        print("fetch location: ${response['data']}");
-        // lat = double.parse(myLocation['latitude']);
-        // long = double.parse( myLocation['longitude']);
-        print("lat: ${myLocation['latitude']}");
-        print("long: ${myLocation['longitude']}");
-      });
-    } else {
-      // const SnackBar(content: Text("Something went Wrong"));
-    }
   }
 
   Future<void> _fetchNearestLocations() async {
