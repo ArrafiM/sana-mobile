@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 // import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
@@ -25,6 +27,9 @@ class SanaScreen extends StatefulWidget {
 
 class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   // var myLocation = <MyLocationModel>{};
+  late AlignOnUpdate _alignPositionOnUpdate;
+  late final StreamController<double?> _alignPositionStreamController;
+
   Map<String, dynamic> myLocation = {};
 
   double circleWidth = 0;
@@ -33,6 +38,8 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   List<LocationModel> locations = [];
   double lat = 0.0;
   double long = 0.0;
+
+  List<dynamic> pinData = [];
 
   BorderRadiusGeometry radius = const BorderRadius.only(
     topLeft: Radius.circular(24.0),
@@ -44,18 +51,30 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     distanceFilter: 100,
   );
 
+  // Function to convert hex color to Flutter's Color object
+  Color _hexToColor(String hex) {
+    hex = hex.replaceAll('#', '');
+    return Color(int.parse('FF$hex', radix: 16));
+  }
+
   @override
   void initState() {
     super.initState();
-    _getData();
-    fetchLocation();
     WidgetsBinding.instance.addObserver(this);
+
+    _alignPositionOnUpdate = AlignOnUpdate.always;
+
     _getCurrentLocation();
+    _fetchNearestLocations();
+    _alignPositionStreamController = StreamController<double?>();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+
+    _alignPositionStreamController.close();
+
     super.dispose();
   }
 
@@ -64,6 +83,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       // Get location when the screen is active again
       _getCurrentLocation();
+      _fetchNearestLocations();
     }
   }
 
@@ -73,8 +93,10 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
       permission = await Geolocator.requestPermission();
     }
 
-    if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    if (permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always) {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
       print("Location latlong updated!");
       setState(() {
         lat = position.latitude;
@@ -87,29 +109,20 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _getData() {
-    locations = LocationModel.getlocations();
-    int lLength = locations.length;
-    print("location length $lLength");
-    // Geolocator.getPositionStream(locationSettings: locationSettings)
-    //     .listen((Position? position) {
-    //   lat = position!.latitude;
-    //   long = position.longitude;
-    //   // print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
-    // });
-    // print('lat: $lat, long: $long');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _homeAppBar(context),
       // body: _contentData(context),
-      body: (lat == 0.0 && long == 0.0)
+      body: (lat == 0.0 || long == 0.0)
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : _mapView(lat, long),
+          : (pinData.isEmpty)
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : _mapView(lat, long, context),
       floatingActionButton: Column(
         children: [
           SizedBox(
@@ -229,7 +242,10 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   //   ]);
   // }
 
-  void showModalSheet(BuildContext context) {
+  void showModalSheet(BuildContext context, data) {
+    if (data != null) {
+      print("modal dengan data: $data");
+    }
     showModalBottomSheet<void>(
       context: context,
       builder: (BuildContext context) {
@@ -259,13 +275,20 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     );
   }
 
-  FlutterMap _mapView(lat, long) {
+  FlutterMap _mapView(lat, long, context) {
     return FlutterMap(
       options: MapOptions(
         initialCenter: LatLng(lat, long),
         initialZoom: 18,
-        minZoom: 30,
-        maxZoom: 25,
+        minZoom: 0,
+        maxZoom: 50,
+        onPositionChanged: (MapCamera camera, bool hasGesture) {
+          if (hasGesture && _alignPositionOnUpdate != AlignOnUpdate.never) {
+            setState(
+              () => _alignPositionOnUpdate = AlignOnUpdate.never,
+            );
+          }
+        },
       ),
       children: [
         TileLayer(
@@ -296,6 +319,76 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
             headingSectorRadius: 100,
           ),
           moveAnimationDuration: Duration.zero, // disable animation
+          alignPositionStream: _alignPositionStreamController.stream,
+          alignPositionOnUpdate: _alignPositionOnUpdate,
+        ),
+        MarkerLayer(
+          markers: List.generate(pinData.length, (index) {
+            return Marker(
+                point: LatLng(
+                  pinData[index]['latitude'],
+                  pinData[index]['longitude'],
+                ),
+                width: 80,
+                height: 50,
+                rotate: true,
+                child: GestureDetector(
+                  onTap: () {
+                    print("Tap on: ${pinData[index]['title']}");
+                    showModalSheet(context, pinData[index]['title']);
+                  },
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Positioned(
+                        top: 0,
+                        child: Text(
+                          pinData[index]['title'],
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 5,
+                        bottom: 0,
+                        child: Icon(
+                          Icons.location_on,
+                          color: _hexToColor(pinData[index]['color']),
+                          size: 30,
+                        ),
+                      ),
+                    ],
+                  ),
+                ));
+          }),
+        ),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: FloatingActionButton(
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50)),
+              onPressed: () {
+                // Align the location marker to the center of the map widget
+                // on location update until user interact with the map.
+                setState(
+                  () => _alignPositionOnUpdate = AlignOnUpdate.always,
+                );
+                // Align the location marker to the center of the map widget
+                // and zoom the map to level 18.
+                _alignPositionStreamController.add(18);
+              },
+              child: const Icon(
+                Icons.my_location,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -310,7 +403,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
       actions: [
         GestureDetector(
           onTap: () {
-            showModalSheet(context);
+            showModalSheet(context, null);
           },
           child: Container(
             decoration: BoxDecoration(
@@ -426,12 +519,24 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     if (response != null) {
       setState(() {
         myLocation = response['data'];
-        
+
         print("fetch location: ${response['data']}");
         // lat = double.parse(myLocation['latitude']);
         // long = double.parse( myLocation['longitude']);
         print("lat: ${myLocation['latitude']}");
         print("long: ${myLocation['longitude']}");
+      });
+    } else {
+      // const SnackBar(content: Text("Something went Wrong"));
+    }
+  }
+
+  Future<void> _fetchNearestLocations() async {
+    final response = await LocationServices.fetchNearestLocations();
+    if (response != null) {
+      setState(() {
+        pinData = response['data'];
+        print("fetch location: ${response['data']}");
       });
     } else {
       // const SnackBar(content: Text("Something went Wrong"));
