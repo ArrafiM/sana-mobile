@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/screen/chat_screen.dart';
+import 'package:sana_mobile/shared/logout.dart';
 
 class MapTopbar extends StatelessWidget implements PreferredSizeWidget {
   const MapTopbar({super.key});
@@ -57,6 +58,12 @@ class MapTopbar extends StatelessWidget implements PreferredSizeWidget {
               ElevatedButton(
                 child: const Text('Close BottomSheet'),
                 onPressed: () => Navigator.pop(context),
+              ),
+              ElevatedButton(
+                child: const Text('Logout'),
+                onPressed: () {
+                  showLogoutConfirmDialog(context);
+                },
               ),
             ],
           ),

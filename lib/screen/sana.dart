@@ -1,16 +1,13 @@
-// ignore_for_file: avoid_print
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/models/detected_location.dart';
 import 'package:sana_mobile/services/location_services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:sana_mobile/shared/logout.dart';
+// import 'package:sana_mobile/shared/logout.dart';
 import 'package:sana_mobile/shared/map_sana.dart';
 import 'package:sana_mobile/shared/map_topbar.dart';
-
-// import 'package:sliding_up_panel/sliding_up_panel.dart';
-// import 'package:url_launcher/url_launcher.dart';
 
 class SanaScreen extends StatefulWidget {
   const SanaScreen({super.key});
@@ -21,6 +18,7 @@ class SanaScreen extends StatefulWidget {
 
 class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   Map<String, dynamic> myLocation = {};
+  int statusCode = 200;
 
   double circleWidth = 0;
   double circleOpacity = 1;
@@ -47,7 +45,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     _getCurrentLocation();
-    _fetchNearestLocations();
+    if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
   }
 
   @override
@@ -61,7 +59,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       // Get location when the screen is active again
       _getCurrentLocation();
-      _fetchNearestLocations();
+      if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
     }
   }
 
@@ -76,11 +74,16 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
       print("Location latlong updated!");
-      setState(() {
-        lat = position.latitude;
-        long = position.longitude;
-      });
       print('latitude: $lat, longitude: $long ');
+
+      if (mounted) {
+        setState(() {
+          lat = position.latitude;
+          long = position.longitude;
+        });
+      }
+
+      if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
     } else {
       // Handle case where permission is denied
       print("Location permission denied");
@@ -95,112 +98,61 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : (pinData.isEmpty)
-              ? const Center(
-                  child: CircularProgressIndicator(),
+          : (statusCode == 401)
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 50),
+                  child: Center(
+                      child: Column(
+                    children: [
+                      const Text("Session Expired!"),
+                      const Text("please login again!"),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/login', // Replace '/login' with the route name for your login screen
+                            (route) => false,
+                          );
+                        },
+                        child: const Text('Login'),
+                      ),
+                    ],
+                  )),
                 )
-              : MapSana(
-                  lat: lat,
-                  long: long,
-                  pinData: pinData,
-                ),
-      // body: DraggableScrollableSheet(
-      //     builder: (BuildContext context, ScrollController scrollController) {
-      //   return Container(
-      //       color: Colors.blue[100],
-      //       child: ListView.builder(
-      //           controller: scrollController,
-      //           itemCount: 25,
-      //           itemBuilder: (BuildContext context, int index) {
-      //             return ListTile(title: Text('item ${index + 1}'));
-      //           }));
-      // }),
-      // body: SlidingUpPanel(
-      //   panel: _nearestLocations(),
-      //   collapsed: Container(
-      //     decoration:
-      //         BoxDecoration(color: Colors.blueGrey, borderRadius: radius),
-      //     child: const Center(
-      //       child: Text(
-      //         "Nearest locations",
-      //         style: TextStyle(color: Colors.white),
-      //       ),
-      //     ),
-      //   ),
-      //   body: _contentData(context),
-      //   borderRadius: radius,
-      // ),
+              : (pinData.isEmpty)
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : MapSana(
+                      lat: lat,
+                      long: long,
+                      pinData: pinData,
+                    ),
     );
   }
 
-  // Column _contentData(BuildContext context) {
-  //   return const Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       SizedBox(
-  //         height: 10,
-  //       ),
-  //       // _mapView(),
-  //       // Center(
-  //       //   child: _radar(context),
-  //       // ),
-  //       SizedBox(
-  //         height: 5,
-  //       ),
-  //       // _nearestLocations(),
-  //     ],
-  //   );
-  // }
-
-  // Column _nearestLocations() {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       const Padding(
-  //         padding: EdgeInsets.only(left: 10, top: 10),
-  //         child: Text(
-  //           'Terdekat',
-  //           style: TextStyle(
-  //               color: Colors.black, fontSize: 18, fontWeight: FontWeight.w600),
-  //         ),
-  //       ),
-  //       const SizedBox(
-  //         height: 5,
-  //       ),
-  //       SizedBox(height: 245, child: _locations())
-  //     ],
-  //   );
-  // }
-
-  // Container _radar(BuildContext context) {
-  //   return Container(
-  //       width: MediaQuery.of(context).size.width,
-  //       height: 350,
-  //       decoration:
-  //           BoxDecoration(color: Colors.blue[100], shape: BoxShape.circle),
-  //       child: const Stack(
-  //         alignment: Alignment.center,
-  //         children: [
-  //           Center(
-  //             child: CircleLoop(time: 3),
-  //           ),
-  //           Center(
-  //             child: MyPosition(),
-  //           ),
-  //           // _floatingButton(context)
-  //         ],
-  //       ));
-  // }
-
-  Future<void> _fetchNearestLocations() async {
-    final response = await LocationServices.fetchNearestLocations();
+  Future<void> _fetchNearestLocations(lat, long) async {
+    final response = await LocationServices.fetchNearestLocations(lat, long);
     if (response != null) {
-      setState(() {
-        pinData = response['data'];
+      if (response == 401) {
+        print("Unauthorized 401");
+        showLogoutDialog(context);
+        if (mounted) {
+          setState(() {
+            statusCode = 401;
+          });
+        }
+      } else {
         print("fetch location: ${response['data']}");
-      });
+        if (mounted) {
+          setState(() {
+            pinData = response['data'];
+          });
+        }
+      }
+      print("pin data: $pinData");
     } else {
-      // const SnackBar(content: Text("Something went Wrong"));
+      const SnackBar(content: Text("Something went Wrong"));
     }
   }
 }

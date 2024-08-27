@@ -58,7 +58,7 @@ class _ListPointState extends State<ListPoint> {
                 SizedBox(
                     height: MediaQuery.of(context).size.width,
                     child: Text(
-                      widget.point[index]['title'],
+                      widget.point[index]['merchant']['name'],
                       style: const TextStyle(
                           fontSize: 14, fontWeight: FontWeight.bold),
                     )),

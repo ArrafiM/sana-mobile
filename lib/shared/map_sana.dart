@@ -116,22 +116,32 @@ class _MapSanaState extends State<MapSana> {
                     alignment: Alignment.center,
                     children: [
                       Positioned(
-                        top: 0,
-                        child: Text(
-                          widget.pinData[index]['title'],
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
+                          top: 0,
+                          child: Container(
+                              width: 80,
+                              decoration: BoxDecoration(
+                                  color: Colors.blueGrey[100],
+                                  borderRadius: BorderRadius.circular(15)),
+                              child: Center(
+                                child: Text(
+                                  widget.pinData[index]['merchant']['name'],
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ))),
                       Positioned(
                         top: 5,
                         bottom: 0,
                         child: Icon(
                           Icons.location_on,
-                          color: _hexToColor(widget.pinData[index]['color']),
+                          color: widget.pinData[index]['merchant']['color'] ==
+                                  ""
+                              ? _hexToColor('#8a2c2c')
+                              : _hexToColor(
+                                  widget.pinData[index]['merchant']['color']),
                           size: 30,
                         ),
                       ),

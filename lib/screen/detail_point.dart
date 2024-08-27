@@ -39,7 +39,7 @@ class _DetailPointState extends State<DetailPoint> {
                 style: TextStyle(fontSize: 12),
               ),
               Text(
-                widget.point['title'],
+                widget.point['merchant']['name'],
                 style:
                     const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
