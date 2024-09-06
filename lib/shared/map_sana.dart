@@ -3,18 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sana_mobile/screen/detail_point.dart';
 // import 'package:sana_mobile/screen/chat_screen.dart';
 import 'package:sana_mobile/screen/list_point.dart';
+import 'package:sana_mobile/services/location_services.dart';
+import 'package:sana_mobile/shared/logout.dart';
 
 class MapSana extends StatefulWidget {
-  const MapSana(
-      {Key? key, required this.lat, required this.long, required this.pinData})
+  const MapSana({Key? key, required this.lat, required this.long})
       : super(key: key);
   final double lat;
   final double long;
-  final List<dynamic> pinData;
+  // final List<dynamic> pinData;
 
   @override
   State<MapSana> createState() => _MapSanaState();
@@ -23,6 +25,11 @@ class MapSana extends StatefulWidget {
 class _MapSanaState extends State<MapSana> {
   late AlignOnUpdate _alignPositionOnUpdate;
   late final StreamController<double?> _alignPositionStreamController;
+
+  double lat = 0.0;
+  double long = 0.0;
+
+  List<dynamic> pinData = [];
 
   // Function to convert hex color to Flutter's Color object
   Color _hexToColor(String hex) {
@@ -35,6 +42,14 @@ class _MapSanaState extends State<MapSana> {
     super.initState();
     _alignPositionOnUpdate = AlignOnUpdate.always;
     _alignPositionStreamController = StreamController<double?>();
+
+    setState(() {
+      lat = widget.lat;
+      long = widget.long;
+      // pinData = widget.pinData;
+    });
+
+    _fetchNearestLocations(lat, long);
   }
 
   @override
@@ -43,11 +58,25 @@ class _MapSanaState extends State<MapSana> {
     super.dispose();
   }
 
+  void _refreshPage() {
+    _getCurrentLocation();
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (pinData.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    } else {
+      return flutterMap(context);
+    }
+  }
+
+  FlutterMap flutterMap(BuildContext context) {
     return FlutterMap(
       options: MapOptions(
-        initialCenter: LatLng(widget.lat, widget.long),
+        initialCenter: LatLng(lat, long),
         initialZoom: 18,
         minZoom: 0,
         maxZoom: 50,
@@ -64,15 +93,6 @@ class _MapSanaState extends State<MapSana> {
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.app',
         ),
-        // CurrentLocationLayer(),
-        // RichAttributionWidget(
-        //   attributions: [
-        //     TextSourceAttribution(
-        //       'OpenStreetMap contributors',
-        //       onTap: () => print("tap map"),
-        //     ),
-        //   ],
-        // ),
         CurrentLocationLayer(
           style: LocationMarkerStyle(
             marker: const DefaultLocationMarker(
@@ -92,25 +112,25 @@ class _MapSanaState extends State<MapSana> {
           alignPositionOnUpdate: _alignPositionOnUpdate,
         ),
         MarkerLayer(
-          markers: List.generate(widget.pinData.length, (index) {
+          markers: List.generate(pinData.length, (index) {
             return Marker(
                 point: LatLng(
-                  widget.pinData[index]['latitude'],
-                  widget.pinData[index]['longitude'],
+                  pinData[index]['latitude'],
+                  pinData[index]['longitude'],
                 ),
                 width: 80,
                 height: 50,
                 rotate: true,
                 child: GestureDetector(
                   onTap: () {
-                    // print("Tap on: ${widget.pinData[index]['title']}");
+                    // print("Tap on: ${pinData[index]['title']}");
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) =>
-                              DetailPoint(point: widget.pinData[index])),
+                              DetailPoint(point: pinData[index])),
                     );
-                    // showModalSheet(context, widget.pinData[index]['title']);
+                    // showModalSheet(context, pinData[index]['title']);
                   },
                   child: Stack(
                     alignment: Alignment.center,
@@ -124,7 +144,7 @@ class _MapSanaState extends State<MapSana> {
                                   borderRadius: BorderRadius.circular(15)),
                               child: Center(
                                 child: Text(
-                                  widget.pinData[index]['merchant']['name'],
+                                  pinData[index]['merchant']['name'],
                                   style: const TextStyle(
                                     color: Colors.black,
                                     fontWeight: FontWeight.bold,
@@ -137,11 +157,10 @@ class _MapSanaState extends State<MapSana> {
                         bottom: 0,
                         child: Icon(
                           Icons.location_on,
-                          color: widget.pinData[index]['merchant']['color'] ==
-                                  ""
+                          color: pinData[index]['merchant']['color'] == ""
                               ? _hexToColor('#8a2c2c')
                               : _hexToColor(
-                                  widget.pinData[index]['merchant']['color']),
+                                  pinData[index]['merchant']['color']),
                           size: 30,
                         ),
                       ),
@@ -190,23 +209,89 @@ class _MapSanaState extends State<MapSana> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ListPoint(
-                        point: widget.pinData,
+                        lat: lat,
+                        long: long,
                       ),
                     ),
                   );
-                  // Navigator.of(context).push(
-                  //   MaterialPageRoute(
-                  //     builder: (context) => const ChatScreen(),
-                  //   ),
-                  // );
                 },
                 backgroundColor: Colors.grey[600],
                 child: const Icon(Icons.view_list, color: Colors.white),
               ),
             ),
           ),
+
+          refreshButton(),
         ])
       ],
     );
+  }
+
+  Padding refreshButton() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 100, right: 20),
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: FloatingActionButton(
+          heroTag: "refreshbutton",
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+          onPressed: () {
+            print("refresh map");
+            _refreshPage();
+          },
+          backgroundColor: Colors.blue,
+          child: const Icon(Icons.refresh, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _getCurrentLocation() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always) {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      print("Location latlong updated!");
+      print('latitude: $lat, longitude: $long ');
+
+      if (mounted) {
+        setState(() {
+          lat = position.latitude;
+          long = position.longitude;
+        });
+      }
+
+      if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
+    } else {
+      // Handle case where permission is denied
+      print("Location permission denied");
+    }
+  }
+
+  Future<void> _fetchNearestLocations(lat, long) async {
+    final response =
+        await LocationServices.fetchNearestLocations(lat, long, 2000, 1, 1000);
+    if (response != null) {
+      if (response == 401) {
+        print("Unauthorized 401");
+        showLogoutDialog(context);
+      } else {
+        print("fetch location: ${response['data']}");
+        if (mounted) {
+          setState(() {
+            pinData = response['data'];
+          });
+        }
+      }
+      print("pin data: $pinData");
+    } else {
+      const SnackBar(content: Text("Something went Wrong"));
+    }
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sana_mobile/models/image_model.dart';
 import 'package:sana_mobile/screen/image_viewer_screen.dart';
 import 'package:sana_mobile/services/user_services.dart';
+import 'package:sana_mobile/shared/profile_topbar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -31,134 +32,144 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     _getInitialInfo();
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 0,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _profileData(),
-          const SizedBox(
-            height: 10,
-          ),
-          _myLibrary()
-        ],
-      )
-    );
+        appBar: const ProfileTopbar(),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _profileData(),
+            const SizedBox(
+              height: 10,
+            ),
+            _myLibrary()
+          ],
+        ));
   }
 
   Container _myLibrary() {
     return Container(
         decoration: BoxDecoration(
             // color: Colors.red[400],
-          borderRadius: BorderRadius.circular(10)),
-        child: 
-        Column(children: [
-          if (images.isEmpty)
-            const Center(
-              child: Text("Share your moment",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),)
-            )
-          else
-          SizedBox(
-            height: MediaQuery.of(context).size.height - 215,
-            child: ListView.builder(
-            itemCount: _imageLength(),
-            itemBuilder: (context, index) {
-              // final item = users[index] as Map;
-              int itemNumber = _itemNumber(index);
-              int idxRow1 = itemNumber;
-              int idxRow2 = itemNumber + 1;
-              int idxRow3 = itemNumber + 2;
-              return SizedBox(
-                height: 132,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      height: 130,
-                      width: (MediaQuery.of(context).size.width  / 3) - 1,
-                      child: idxRow1 < images.length
-                      ? GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ImageViewerScreen(
-                                images: images, // Daftar ImageModel Anda
-                                initialIndex: idxRow1, // Indeks gambar yang diklik
-                              ),
+            borderRadius: BorderRadius.circular(10)),
+        child: Column(
+          children: [
+            if (images.isEmpty)
+              const Center(
+                  child: Text(
+                "Share your moment",
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ))
+            else
+              SizedBox(
+                height: MediaQuery.of(context).size.height - 221,
+                child: ListView.builder(
+                    itemCount: _imageLength(),
+                    itemBuilder: (context, index) {
+                      // final item = users[index] as Map;
+                      int itemNumber = _itemNumber(index);
+                      int idxRow1 = itemNumber;
+                      int idxRow2 = itemNumber + 1;
+                      int idxRow3 = itemNumber + 2;
+                      return SizedBox(
+                        height: 132,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              height: 130,
+                              width:
+                                  (MediaQuery.of(context).size.width / 3) - 1,
+                              child: idxRow1 < images.length
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ImageViewerScreen(
+                                              images:
+                                                  images, // Daftar ImageModel Anda
+                                              initialIndex:
+                                                  idxRow1, // Indeks gambar yang diklik
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Image.asset(
+                                        images[idxRow1].photo,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : null,
                             ),
-                          );
-                        },
-                        child: Image.asset(
-                          images[idxRow1].photo,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                      : null,
-                    ),
-                    const SizedBox(
-                      width: 1,
-                    ),
-                    SizedBox(
-                      height: 130,
-                      width: (MediaQuery.of(context).size.width  / 3) - 1,
-                      child: idxRow2 < images.length
-                      ? GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ImageViewerScreen(
-                                images: images, // Daftar ImageModel Anda
-                                initialIndex: idxRow2, // Indeks gambar yang diklik
-                              ),
+                            const SizedBox(
+                              width: 1,
                             ),
-                          );
-                        },
-                        child: Image.asset(
-                          images[idxRow2].photo,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                      : null,
-                    ),
-                    const SizedBox(
-                      width: 1,
-                    ),
-                    SizedBox(
-                      height: 130,
-                      width: (MediaQuery.of(context).size.width  / 3) - 1,
-                      child: idxRow3 < images.length
-                      ? GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ImageViewerScreen(
-                                images: images, // Daftar ImageModel Anda
-                                initialIndex: idxRow3, // Indeks gambar yang diklik
-                              ),
+                            SizedBox(
+                              height: 130,
+                              width:
+                                  (MediaQuery.of(context).size.width / 3) - 1,
+                              child: idxRow2 < images.length
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ImageViewerScreen(
+                                              images:
+                                                  images, // Daftar ImageModel Anda
+                                              initialIndex:
+                                                  idxRow2, // Indeks gambar yang diklik
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Image.asset(
+                                        images[idxRow2].photo,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : null,
                             ),
-                          );
-                        },
-                        child: Image.asset(
-                          images[idxRow3].photo,
-                          fit: BoxFit.cover,
+                            const SizedBox(
+                              width: 1,
+                            ),
+                            SizedBox(
+                              height: 130,
+                              width:
+                                  (MediaQuery.of(context).size.width / 3) - 1,
+                              child: idxRow3 < images.length
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ImageViewerScreen(
+                                              images:
+                                                  images, // Daftar ImageModel Anda
+                                              initialIndex:
+                                                  idxRow3, // Indeks gambar yang diklik
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Image.asset(
+                                        images[idxRow3].photo,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ],
                         ),
-                      )
-                      : null,
-                    ),
-                  ],
-                ),
-            );
-          }
-        ),)
-      ],)
-    );
+                      );
+                    }),
+              )
+          ],
+        ));
   }
 
-  int _itemNumber(index){
+  int _itemNumber(index) {
     var itemNumber = index;
     if (index != 0) {
       if (itemNumber % 2 == 0) {
@@ -175,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _imageLength() {
     int imagesLength = images.length;
     print("images length: $imagesLength");
-    var lastImage = images[imagesLength -1];
+    var lastImage = images[imagesLength - 1];
     print("image: $lastImage");
     var row = imagesLength / 3;
     return row.ceil();
@@ -219,23 +230,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
                     height: 70,
                     width: 70,
                     decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(100)),
                     child: const CircleAvatar(
-                      backgroundImage: NetworkImage('https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'),
+                      backgroundImage: NetworkImage(
+                          'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'),
                       radius: 50,
                     )
                     // const Icon(Icons.person),
-                  ),
-                ],
-              )),
+                    ),
+              ],
+            )),
             const Padding(
                 padding: EdgeInsets.only(left: 10),
                 child: Column(

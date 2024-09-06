@@ -86,9 +86,10 @@ class _LoginFormState extends State<LoginForm> {
     return Scaffold(
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: loginForm(),
-        ),
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: loginForm(),
+            )),
       ),
     );
   }
@@ -96,7 +97,7 @@ class _LoginFormState extends State<LoginForm> {
   Container loginForm() {
     return Container(
       width: double.infinity,
-      constraints: BoxConstraints(maxWidth: 400),
+      constraints: const BoxConstraints(maxWidth: 400),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,

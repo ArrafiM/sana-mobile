@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/screen/home.dart';
-import 'package:sana_mobile/screen/profile.dart';
+import 'package:sana_mobile/screen/profileUser.dart';
 import 'package:sana_mobile/screen/sana.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -62,7 +62,8 @@ class _MainNavigationState extends State<MainNavigation> {
         // const ChatScreen(),
 
         // profile
-        const ProfileScreen(),
+        // const ProfileScreen(),
+        const ProfileUserScreen()
       ][_selectedIndex],
     );
   }

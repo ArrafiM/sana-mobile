@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/models/detected_location.dart';
-import 'package:sana_mobile/services/location_services.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:sana_mobile/shared/logout.dart';
 // import 'package:sana_mobile/shared/logout.dart';
 import 'package:sana_mobile/shared/map_sana.dart';
 import 'package:sana_mobile/shared/map_topbar.dart';
@@ -45,7 +43,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     _getCurrentLocation();
-    if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
+    // if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
   }
 
   @override
@@ -59,7 +57,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       // Get location when the screen is active again
       _getCurrentLocation();
-      if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
+      // if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
     }
   }
 
@@ -83,7 +81,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
         });
       }
 
-      if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
+      // if (lat != 0.0 || long != 0.0) _fetfetcchNearestLocations(lat, long);
     } else {
       // Handle case where permission is denied
       print("Location permission denied");
@@ -98,61 +96,38 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : (statusCode == 401)
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 50),
-                  child: Center(
-                      child: Column(
-                    children: [
-                      const Text("Session Expired!"),
-                      const Text("please login again!"),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            '/login', // Replace '/login' with the route name for your login screen
-                            (route) => false,
-                          );
-                        },
-                        child: const Text('Login'),
-                      ),
-                    ],
-                  )),
-                )
-              : (pinData.isEmpty)
-                  ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : MapSana(
-                      lat: lat,
-                      long: long,
-                      pinData: pinData,
-                    ),
+          : MapSana(
+              lat: lat,
+              long: long,
+            ),
+      // floatingActionButton: Stack(
+      //   children: [refreshButton()],
+      // ),
     );
   }
 
-  Future<void> _fetchNearestLocations(lat, long) async {
-    final response = await LocationServices.fetchNearestLocations(lat, long);
-    if (response != null) {
-      if (response == 401) {
-        print("Unauthorized 401");
-        showLogoutDialog(context);
-        if (mounted) {
-          setState(() {
-            statusCode = 401;
-          });
-        }
-      } else {
-        print("fetch location: ${response['data']}");
-        if (mounted) {
-          setState(() {
-            pinData = response['data'];
-          });
-        }
-      }
-      print("pin data: $pinData");
-    } else {
-      const SnackBar(content: Text("Something went Wrong"));
-    }
-  }
+  // Future<void> _fetchNearestLocations(lat, long) async {
+  //   final response = await LocationServices.fetchNearestLocations(lat, long);
+  //   if (response != null) {
+  //     if (response == 401) {
+  //       print("Unauthorized 401");
+  //       showLogoutDialog(context);
+  //       if (mounted) {
+  //         setState(() {
+  //           statusCode = 401;
+  //         });
+  //       }
+  //     } else {
+  //       print("fetch location: ${response['data']}");
+  //       if (mounted) {
+  //         setState(() {
+  //           pinData = response['data'];
+  //         });
+  //       }
+  //     }
+  //     print("pin data: $pinData");
+  //   } else {
+  //     const SnackBar(content: Text("Something went Wrong"));
+  //   }
+  // }
 }

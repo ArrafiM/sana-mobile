@@ -30,7 +30,8 @@ class UserServices {
       'password': password,
     });
     final response = await http.post(
-      Uri.parse('https://b530-182-253-124-160.ngrok-free.app/api/auth/login'),
+      Uri.parse(
+          'https://f37a-2a09-bac5-3a13-18be-00-277-3e.ngrok-free.app/api/auth/login'),
       body: body,
     );
     final json = jsonDecode(response.body) as Map;
@@ -52,7 +53,7 @@ class UserServices {
     });
     final response = await http.post(
       Uri.parse(
-          'https://b530-182-253-124-160.ngrok-free.app/api/auth/register'),
+          'https://f37a-2a09-bac5-3a13-18be-00-277-3e.ngrok-free.app/api/auth/register'),
       body: body,
     );
     final json = jsonDecode(response.body) as Map;

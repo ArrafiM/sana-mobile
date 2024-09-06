@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocationServices {
   static Future<Map?> fetchMyLocation() async {
     const url =
-        'https://49d6-2404-8000-1024-c92-54a-a3ea-d392-659.ngrok-free.app/api/locations?my=1';
+        'https://f37a-2a09-bac5-3a13-18be-00-277-3e.ngrok-free.app/api/locations?my=1';
     const token =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE3MjM3OTEwMTgsInVzZXJfaWQiOjF9.FQbFSraccDmW1cA-vpG20ZyclEKtNr6kiXTL88d8UaI';
     final uri = Uri.parse(url);
@@ -35,11 +35,12 @@ class LocationServices {
     // Navigasi ke halaman login
   }
 
-  static Future fetchNearestLocations(lat, long) async {
+  static Future fetchNearestLocations(
+      lat, long, radius, page, page_size) async {
     print("call api location, lat: $lat, long: $long");
-    var url = 'https://b530-182-253-124-160.ngrok-free.app'
+    var url = 'https://f37a-2a09-bac5-3a13-18be-00-277-3e.ngrok-free.app'
         '/api/locations/nearest'
-        '?latitude=$lat&longitude=$long&radius=2000&page=1&page_size=100';
+        '?latitude=$lat&longitude=$long&radius=$radius&page=$page&page_size=$page_size';
     // String token = 'nothing';
     String? token = await checkToken();
     // print("token data: $token");
@@ -54,6 +55,7 @@ class LocationServices {
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
       final result = json['data'] as List;
+      print("total: ${result.length}");
       Map data = {'data': result};
       return data;
     } else if (response.statusCode == 401) {
