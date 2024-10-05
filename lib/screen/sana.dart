@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/models/detected_location.dart';
 import 'package:geolocator/geolocator.dart';
-// import 'package:sana_mobile/shared/logout.dart';
+import 'package:sana_mobile/services/socket_services.dart';
+import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/map_sana.dart';
 import 'package:sana_mobile/shared/map_topbar.dart';
 
@@ -17,7 +18,6 @@ class SanaScreen extends StatefulWidget {
 class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   Map<String, dynamic> myLocation = {};
   int statusCode = 200;
-
   double circleWidth = 0;
   double circleOpacity = 1;
 
@@ -25,7 +25,9 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   double lat = 0.0;
   double long = 0.0;
 
-  List<dynamic> pinData = [];
+  final SocketService _socketService =
+      SocketService(); // Initialize the socket service
+  late StreamSubscription<String> _messageSubscription;
 
   BorderRadiusGeometry radius = const BorderRadius.only(
     topLeft: Radius.circular(24.0),
@@ -41,13 +43,26 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
+    _webSocketConnect();
     _getCurrentLocation();
-    // if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
+  }
+
+  Future<void> _webSocketConnect() async {
+    // Connect to the WebSocket server
+    String? userId = await UserServices.checkMyId();
+    _socketService.connect('ws://172.20.10.3:8080/ws?user_id=user$userId');
+
+    // Listen for messages from the WebSocket
+    _messageSubscription = _socketService.messageStream.listen((message) {
+      // Handle incoming messages
+      print("Received message: $message");
+    });
   }
 
   @override
   void dispose() {
+    _messageSubscription.cancel(); // Cancel the subscription
+    // _socketService.disconnect(); // Disconnect the WebSocket
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -55,9 +70,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Get location when the screen is active again
       _getCurrentLocation();
-      // if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
     }
   }
 
@@ -80,10 +93,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
           long = position.longitude;
         });
       }
-
-      // if (lat != 0.0 || long != 0.0) _fetfetcchNearestLocations(lat, long);
     } else {
-      // Handle case where permission is denied
       print("Location permission denied");
     }
   }
@@ -100,34 +110,6 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
               lat: lat,
               long: long,
             ),
-      // floatingActionButton: Stack(
-      //   children: [refreshButton()],
-      // ),
     );
   }
-
-  // Future<void> _fetchNearestLocations(lat, long) async {
-  //   final response = await LocationServices.fetchNearestLocations(lat, long);
-  //   if (response != null) {
-  //     if (response == 401) {
-  //       print("Unauthorized 401");
-  //       showLogoutDialog(context);
-  //       if (mounted) {
-  //         setState(() {
-  //           statusCode = 401;
-  //         });
-  //       }
-  //     } else {
-  //       print("fetch location: ${response['data']}");
-  //       if (mounted) {
-  //         setState(() {
-  //           pinData = response['data'];
-  //         });
-  //       }
-  //     }
-  //     print("pin data: $pinData");
-  //   } else {
-  //     const SnackBar(content: Text("Something went Wrong"));
-  //   }
-  // }
 }

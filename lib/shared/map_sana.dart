@@ -64,13 +64,14 @@ class _MapSanaState extends State<MapSana> {
 
   @override
   Widget build(BuildContext context) {
-    if (pinData.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    } else {
-      return flutterMap(context);
-    }
+    // if (pinData.isEmpty) {
+    //   return const Center(
+    //     child: CircularProgressIndicator(),
+    //   );
+    // } else {
+    //   return flutterMap(context);
+    // }
+    return flutterMap(context);
   }
 
   FlutterMap flutterMap(BuildContext context) {
@@ -111,64 +112,89 @@ class _MapSanaState extends State<MapSana> {
           alignPositionStream: _alignPositionStreamController.stream,
           alignPositionOnUpdate: _alignPositionOnUpdate,
         ),
-        MarkerLayer(
-          markers: List.generate(pinData.length, (index) {
-            return Marker(
-                point: LatLng(
-                  pinData[index]['latitude'],
-                  pinData[index]['longitude'],
-                ),
-                width: 80,
-                height: 50,
-                rotate: true,
-                child: GestureDetector(
-                  onTap: () {
-                    // print("Tap on: ${pinData[index]['title']}");
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              DetailPoint(point: pinData[index])),
-                    );
-                    // showModalSheet(context, pinData[index]['title']);
-                  },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned(
-                          top: 0,
-                          child: Container(
-                              width: 80,
-                              decoration: BoxDecoration(
-                                  color: Colors.blueGrey[100],
-                                  borderRadius: BorderRadius.circular(15)),
-                              child: Center(
-                                child: Text(
-                                  pinData[index]['merchant']['name'],
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ))),
-                      Positioned(
-                        top: 5,
-                        bottom: 0,
-                        child: Icon(
-                          Icons.location_on,
-                          color: pinData[index]['merchant']['color'] == ""
-                              ? _hexToColor('#8a2c2c')
-                              : _hexToColor(
-                                  pinData[index]['merchant']['color']),
-                          size: 30,
-                        ),
+        pinData.isNotEmpty
+            ? MarkerLayer(
+                markers: List.generate(pinData.length, (index) {
+                  return Marker(
+                      point: LatLng(
+                        pinData[index]['latitude'],
+                        pinData[index]['longitude'],
                       ),
-                    ],
+                      width: 80,
+                      height: 50,
+                      rotate: true,
+                      child: GestureDetector(
+                        onTap: () {
+                          // print("Tap on: ${pinData[index]['title']}");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    DetailPoint(point: pinData[index])),
+                          );
+                          // showModalSheet(context, pinData[index]['title']);
+                        },
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Positioned(
+                                top: 0,
+                                child: Container(
+                                    width: 80,
+                                    decoration: BoxDecoration(
+                                        color: Colors.blueGrey[100],
+                                        borderRadius:
+                                            BorderRadius.circular(15)),
+                                    child: Center(
+                                      child: Text(
+                                        pinData[index]['merchant']['name'],
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ))),
+                            Positioned(
+                              top: 5,
+                              bottom: 0,
+                              child: Icon(
+                                Icons.location_on,
+                                color: pinData[index]['merchant']['color'] == ""
+                                    ? _hexToColor('#8a2c2c')
+                                    : _hexToColor(
+                                        pinData[index]['merchant']['color']),
+                                size: 30,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ));
+                }),
+              )
+            : Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16.0),
+                margin: const EdgeInsets.only(bottom: 16.0),
+                decoration: const BoxDecoration(
+                  color: Colors.lightBlueAccent, // Warna biru muda
+                  borderRadius: BorderRadius.only(
+                    bottomLeft:
+                        Radius.circular(30.0), // Pojok kiri bawah melengkung
+                    bottomRight:
+                        Radius.circular(30.0), // Pojok kanan bawah melengkung
                   ),
-                ));
-          }),
-        ),
+                ),
+                child: const Text(
+                  'No Merchant found, tap circle arrow button to refresh data!',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.white, // Warna teks putih
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+        // : const Text('No Merchant found, still loaded...'),
         Align(
           alignment: Alignment.bottomRight,
           child: Padding(

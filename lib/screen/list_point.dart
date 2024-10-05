@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/screen/detail_point.dart';
 import 'package:sana_mobile/services/location_services.dart';
+import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/logout.dart';
 
 class ListPoint extends StatefulWidget {
@@ -19,8 +20,7 @@ class ListPoint extends StatefulWidget {
 
 class _ListPointState extends State<ListPoint> {
   late ScrollController _scrollController;
-  String publicApiUrl =
-      "https://f37a-2a09-bac5-3a13-18be-00-277-3e.ngrok-free.app/public/";
+  String publicApiUrl = "";
   List pointData = [];
   bool _isLoading = false;
   int _page = 1;
@@ -30,6 +30,10 @@ class _ListPointState extends State<ListPoint> {
   @override
   void initState() {
     super.initState();
+    String apiUrl = UserServices.apiUrl();
+    setState(() {
+      publicApiUrl = "$apiUrl/public/";
+    });
     _scrollController = ScrollController();
     _fetchNearestLocations(widget.lat, widget.long, _radius, _page, _pageSize);
 
@@ -112,19 +116,31 @@ class _ListPointState extends State<ListPoint> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Container(
-                width: 80,
-                decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    image: DecorationImage(
-                        image: NetworkImage(publicApiUrl +
-                            pointData[index]['merchant']['picture']),
-                        fit: BoxFit.cover)),
-              ),
-            ),
+            pointData[index]['merchant']['picture'] != ""
+                ? Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Container(
+                      width: 80,
+                      decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(20)),
+                          image: DecorationImage(
+                              image: NetworkImage(publicApiUrl +
+                                  pointData[index]['merchant']['picture']),
+                              fit: BoxFit.cover)),
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Container(
+                      width: 80,
+                      decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(20))),
+                    ),
+                  ),
             Padding(
                 padding: const EdgeInsets.only(left: 10),
                 child: Column(

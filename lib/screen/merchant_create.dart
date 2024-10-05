@@ -22,16 +22,24 @@ class _MerchantCreateState extends State<MerchantCreate> {
       if (!cameraStatus.isGranted) {
         // Jika izin kamera tidak diberikan
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Izin akses kamera ditolak')),
+          const SnackBar(content: Text('Izin akses kamera ditolak')),
         );
         return;
       }
     } else if (source == ImageSource.gallery) {
-      PermissionStatus galleryStatus = await Permission.photos.request();
-      if (!galleryStatus.isGranted) {
+      // PermissionStatus galleryStatus = await Permission.photos.request();
+      // if (!galleryStatus.isGranted) {
+      //   // Jika izin galeri tidak diberikan
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(content: Text('Izin akses galeri ditolak')),
+      //   );
+      //   return;
+      // }
+      PermissionStatus storageStatus = await Permission.storage.request();
+      if (!storageStatus.isGranted) {
         // Jika izin galeri tidak diberikan
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Izin akses galeri ditolak')),
+          const SnackBar(content: Text('Izin akses galeri ditolak')),
         );
         return;
       }

@@ -1,9 +1,43 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/screen/chat_screen.dart';
+import 'package:sana_mobile/services/chat_services.dart';
+import 'package:sana_mobile/services/socket_services.dart';
 import 'package:sana_mobile/shared/logout.dart';
 
-class MapTopbar extends StatelessWidget implements PreferredSizeWidget {
+class MapTopbar extends StatefulWidget implements PreferredSizeWidget {
   const MapTopbar({super.key});
+
+  @override
+  State<MapTopbar> createState() => _MapTopbarState();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _MapTopbarState extends State<MapTopbar> {
+  int unreadMessage = 0;
+  late StreamSubscription<String> _messageSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _websocketConnect();
+    fetchChatroom();
+  }
+
+  Future<void> _websocketConnect() async {
+    _messageSubscription = SocketService().messageStream.listen((message) {
+      print("socket msg: $message");
+      fetchChatroom();
+    });
+  }
+
+  @override
+  void dispose() {
+    _messageSubscription.cancel(); // Cancel the subscription
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,14 +47,39 @@ class MapTopbar extends StatelessWidget implements PreferredSizeWidget {
         style: TextStyle(fontWeight: FontWeight.w800),
       ),
       actions: <Widget>[
-        IconButton(
-          icon: const Icon(Icons.question_answer),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ChatScreen()),
-            );
-          },
+        Stack(
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.question_answer),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ChatScreen()),
+                );
+              },
+            ),
+            if (unreadMessage > 0)
+              Positioned(
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                      color: Colors.red, shape: BoxShape.circle),
+                  constraints: const BoxConstraints(
+                    minWidth: 20,
+                    minHeight: 20,
+                  ),
+                  child: Text(
+                    '$unreadMessage',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
         ),
         IconButton(
           icon: const Icon(Icons.more_horiz),
@@ -72,32 +131,14 @@ class MapTopbar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Future<void> fetchChatroom() async {
+    final response = await ChatServices.fetchChatrooms(1, 15, false);
+    if (response != null) {
+      setState(() {
+        unreadMessage = response['unread'];
+      });
+    } else {
+      // const SnackBar(content: Text("Something went Wrong"));
+    }
+  }
 }
-
-// class MapTopbar extends StatelessWidget {
-// const MapTopbar({ Key? key }) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context){
-
-//   }
-// }
-
-// class MapTopbar extends StatefulWidget {
-//   const MapTopbar({Key? key}) : super(key: key);
-
-//   @override
-//   // _MapTopbarState createState() => _MapTopbarState();
-//   State<MapTopbar> createState() => _MapTopbarState();
-// }
-
-// class _MapTopbarState extends State<MapTopbar> {
-//   @override
-//   Widget build(BuildContext context) {
-    
-//   }
-
-  
-// }

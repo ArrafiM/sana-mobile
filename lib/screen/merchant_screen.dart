@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:sana_mobile/screen/merchant_create.dart';
 import 'package:sana_mobile/services/merchant_services.dart';
+import 'package:sana_mobile/services/user_services.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +20,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
   final PageController _pageController = PageController();
   late ScrollController _scrollController;
   Color backgroundColorLanding = Colors.white;
-  String publicApiUrl = "https://1707-114-122-108-23.ngrok-free.app/public/";
+  String publicApiUrl = "";
   bool isLoad = true;
   Map<String, dynamic> merchant = {};
   List landingImage = [];
@@ -29,12 +30,16 @@ class _MerchantScreenState extends State<MerchantScreen> {
   @override
   void initState() {
     super.initState();
+    String apiUrl = UserServices.apiUrl();
+    setState(() {
+      publicApiUrl = "$apiUrl/public/";
+    });
     _scrollController = ScrollController();
     fetchMyMerchant();
   }
 
   Future<void> _updatePalette() async {
-    if (merchant['picture'] != null) {
+    if (merchant['picture'] != "") {
       final imageProvider =
           CachedNetworkImageProvider("$publicApiUrl${merchant['picture']}");
       final PaletteGenerator paletteGenerator =
@@ -191,7 +196,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             // mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              if (merchant['picture'] != null)
+              if (merchant['picture'] != "")
                 CircleAvatar(
                   backgroundImage: CachedNetworkImageProvider(
                       publicApiUrl + merchant['picture']),

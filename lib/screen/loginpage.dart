@@ -277,6 +277,8 @@ Future<void> _fetchLogin(context, email, password) async {
     print("login success");
     // await prefs.setString('token', 'token_test');
     await prefs.setString('token', response['token']);
+    String userId = '${response['user_id']}';
+    await prefs.setString('user_id', userId);
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const MainNavigation()),

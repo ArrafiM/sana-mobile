@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sana_mobile/screen/home.dart';
-import 'package:sana_mobile/screen/profileUser.dart';
+import 'package:sana_mobile/screen/merchant_screen.dart';
+import 'package:sana_mobile/screen/explore_screen.dart';
 import 'package:sana_mobile/screen/sana.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -21,9 +21,9 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: Icon(Icons.explore_outlined),
+            activeIcon: Icon(Icons.explore),
+            label: 'Explore',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.radio_button_unchecked_sharp),
@@ -36,9 +36,9 @@ class _MainNavigationState extends State<MainNavigation> {
           //   label: 'Chats',
           // ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: Icon(Icons.store_outlined),
+            activeIcon: Icon(Icons.store),
+            label: 'Merchant',
           ),
         ],
         unselectedItemColor: Colors.black,
@@ -52,18 +52,11 @@ class _MainNavigationState extends State<MainNavigation> {
         onTap: _onItemTapped,
       ),
       body: <Widget>[
-        /// Home page
-        const HomeScreen(),
+        const ExploreScreen(),
 
-        // Sana Page
         const SanaScreen(),
 
-        // Chat Page
-        // const ChatScreen(),
-
-        // profile
-        // const ProfileScreen(),
-        const ProfileUserScreen()
+        const MerchantScreen()
       ][_selectedIndex],
     );
   }

@@ -1,14 +1,15 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:sana_mobile/services/location_services.dart';
+import 'package:sana_mobile/services/user_services.dart';
 
 class MerchantServices {
   static Future fetchMerchantId(id) async {
     print("call api merchant id : $id");
-    var url = 'https://1707-114-122-108-23.ngrok-free.app'
-        '/api/merchants/$id';
-    String? token = await LocationServices.checkToken();
+    String apiUrl = UserServices.apiUrl();
+    var url =
+        '$apiUrl/api/merchants/$id';
+    String? token = await UserServices.checkToken();
     final uri = Uri.parse(url);
     final response = await http.get(uri, headers: {
       'Content-Type': 'application/json',
@@ -26,9 +27,9 @@ class MerchantServices {
 
   static Future fetchMyMerchant() async {
     print("call api my merchant data");
-    var url = 'https://1707-114-122-108-23.ngrok-free.app'
-        '/api/mymerchants';
-    String? token = await LocationServices.checkToken();
+    String apiUrl = UserServices.apiUrl();
+    var url = '$apiUrl/api/mymerchants';
+    String? token = await UserServices.checkToken();
     final uri = Uri.parse(url);
     final response = await http.get(uri, headers: {
       'Content-Type': 'application/json',

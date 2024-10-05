@@ -86,4 +86,5 @@ showLogoutConfirmDialog(context) {
 void _logout() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.remove('token');
+  await prefs.remove('user_id');
 }

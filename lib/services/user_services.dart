@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-// import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserServices {
   static Future<Map?> fetchUsers() async {
@@ -29,9 +29,9 @@ class UserServices {
       'email': email,
       'password': password,
     });
+    String apiurl = apiUrl();
     final response = await http.post(
-      Uri.parse(
-          'https://f37a-2a09-bac5-3a13-18be-00-277-3e.ngrok-free.app/api/auth/login'),
+      Uri.parse('$apiurl/api/auth/login'),
       body: body,
     );
     final json = jsonDecode(response.body) as Map;
@@ -51,9 +51,9 @@ class UserServices {
       'password': data['password'],
       'confirm_password': data['confirm_password'],
     });
+    String apiurl = apiUrl();
     final response = await http.post(
-      Uri.parse(
-          'https://f37a-2a09-bac5-3a13-18be-00-277-3e.ngrok-free.app/api/auth/register'),
+      Uri.parse('$apiurl/api/auth/register'),
       body: body,
     );
     final json = jsonDecode(response.body) as Map;
@@ -64,5 +64,26 @@ class UserServices {
       print('register success!');
       return json;
     }
+  }
+
+  static String apiUrl() {
+    String apiUrl = "https://7d44-114-122-79-66.ngrok-free.app";
+    return apiUrl;
+  }
+
+  static Future<String?> checkToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  static Future<String?> checkMyId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_id');
+  }
+
+  static Future<void> handleUnauthorized() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token'); // Hapus token dari SharedPreferences
+    // Navigasi ke halaman login
   }
 }

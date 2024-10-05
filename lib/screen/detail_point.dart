@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:sana_mobile/services/helper_services.dart';
 import 'package:sana_mobile/services/merchant_services.dart';
+import 'package:sana_mobile/services/user_services.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:intl/intl.dart';
 
 class DetailPoint extends StatefulWidget {
   final Map<String, dynamic> point;
@@ -21,7 +22,7 @@ class _DetailPointState extends State<DetailPoint> {
   late ScrollController _scrollController;
   Map<String, dynamic> pointData = {};
   Color backgroundColorLanding = Colors.white;
-  String publicApiUrl = "https://f37a-2a09-bac5-3a13-18be-00-277-3e.ngrok-free.app/public/";
+  String publicApiUrl = "";
   bool isLoad = true;
   Map<String, dynamic> merchant = {};
   List landingImage = [];
@@ -32,7 +33,9 @@ class _DetailPointState extends State<DetailPoint> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    String apiUrl = UserServices.apiUrl();
     setState(() {
+      publicApiUrl = "$apiUrl/public/";
       pointData = widget.point;
     });
     _updatePalette();
@@ -40,16 +43,18 @@ class _DetailPointState extends State<DetailPoint> {
   }
 
   Future<void> _updatePalette() async {
-    final imageProvider =
-        NetworkImage("$publicApiUrl${pointData['merchant']['picture']}");
-    final PaletteGenerator paletteGenerator =
-        await PaletteGenerator.fromImageProvider(imageProvider);
+    if (pointData['merchant']['picture'] != "") {
+      final imageProvider =
+          NetworkImage("$publicApiUrl${pointData['merchant']['picture']}");
+      final PaletteGenerator paletteGenerator =
+          await PaletteGenerator.fromImageProvider(imageProvider);
 
-    setState(() {
-      backgroundColorLanding =
-          paletteGenerator.dominantColor?.color ?? Colors.white;
-      // isLoadColor = false;
-    });
+      setState(() {
+        backgroundColorLanding =
+            paletteGenerator.dominantColor?.color ?? Colors.white;
+        // isLoadColor = false;
+      });
+    }
   }
 
   Future<void> _refresh() async {
@@ -169,11 +174,16 @@ class _DetailPointState extends State<DetailPoint> {
             crossAxisAlignment: CrossAxisAlignment.start,
             // mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage(
-                    publicApiUrl + pointData['merchant']['picture']),
-                radius: 50,
-              ),
+              pointData['merchant']['picture'] != ""
+                  ? CircleAvatar(
+                      backgroundImage: NetworkImage(
+                          publicApiUrl + pointData['merchant']['picture']),
+                      radius: 50,
+                    )
+                  : const CircleAvatar(
+                      backgroundImage: AssetImage("assets/photos/slogo.png"),
+                      radius: 50,
+                    ),
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: SizedBox(
@@ -285,7 +295,8 @@ class _DetailPointState extends State<DetailPoint> {
                     Padding(
                       padding: const EdgeInsets.only(top: 20),
                       child: Text(
-                        formatCurrency(merchandise[index]['price'].toDouble()),
+                        HelperServices.formatCurrency(
+                            merchandise[index]['price'].toDouble()),
                         style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -298,15 +309,6 @@ class _DetailPointState extends State<DetailPoint> {
             ],
           ));
     }
-  }
-
-  String formatCurrency(double amount) {
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID', // Locale untuk Indonesia
-      symbol: 'Rp', // Simbol mata uang Rupiah
-      decimalDigits: 0, // Jumlah digit desimal
-    );
-    return formatter.format(amount);
   }
 
   Future<void> fetchMerchant(id) async {
