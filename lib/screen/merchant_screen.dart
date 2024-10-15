@@ -1,41 +1,68 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:sana_mobile/screen/merchant_create.dart';
 import 'package:sana_mobile/services/merchant_services.dart';
+import 'package:sana_mobile/services/socket_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
+import 'package:sana_mobile/shared/mymerchant_topbar.dart';
+import 'package:sana_mobile/shared/simple_topbar.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 
-class MerchantScreen extends StatefulWidget {
+class MerchantScreen extends StatefulWidget implements PreferredSizeWidget {
   const MerchantScreen({
     Key? key,
   }) : super(key: key);
 
   @override
   State<MerchantScreen> createState() => _MerchantScreenState();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class _MerchantScreenState extends State<MerchantScreen> {
   final PageController _pageController = PageController();
+  late StreamSubscription<String> _messageSubscription;
   late ScrollController _scrollController;
   Color backgroundColorLanding = Colors.white;
   String publicApiUrl = "";
   bool isLoad = true;
   Map<String, dynamic> merchant = {};
   List landingImage = [];
+  String? myId = '';
 
   List merchandise = ['0'];
 
   @override
   void initState() {
     super.initState();
+    _websocketConnect();
     String apiUrl = UserServices.apiUrl();
     setState(() {
       publicApiUrl = "$apiUrl/public/";
     });
     _scrollController = ScrollController();
     fetchMyMerchant();
+  }
+
+  Future<void> _websocketConnect() async {
+    String? userId = await UserServices.checkMyId();
+    setState(() {
+      myId = userId;
+    });
+    _messageSubscription = SocketService().messageStream.listen((message) {
+      print("socket msg mymerchant: $message");
+      if (message == "myMerchant$myId") {
+        setState(() {
+          isLoad = true;
+        });
+        fetchMyMerchant();
+      }
+    });
   }
 
   Future<void> _updatePalette() async {
@@ -59,6 +86,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
 
   @override
   void dispose() {
+    _messageSubscription.cancel(); // Cancel the subscription
     _scrollController.dispose();
     super.dispose();
   }
@@ -66,22 +94,9 @@ class _MerchantScreenState extends State<MerchantScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Detail',
-                style: TextStyle(fontSize: 12),
-              ),
-              Text(
-                'Merchant',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-          centerTitle: true,
-        ),
+        appBar: merchant['name'] != ''
+            ? MyMerchantTopbar(merchant: merchant)
+            : const SimpleTopBar(),
         body: _myMerchantData());
   }
 
@@ -104,8 +119,12 @@ class _MerchantScreenState extends State<MerchantScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) =>
-                                        const MerchantCreate()),
+                                    builder: (context) => const MerchantCreate(
+                                          name: '',
+                                          desc: '',
+                                          pathImage: '',
+                                          merchantId: 0,
+                                        )),
                               );
                             },
                             style: ElevatedButton.styleFrom(
@@ -167,7 +186,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
           child: Align(
             alignment: Alignment.topLeft,
             child: Text(
-              "Merchandise list:",
+              "Item list:",
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -256,7 +275,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
       return const Padding(
         padding: EdgeInsets.only(top: 10),
         child: Center(
-          child: Text("Merchandise: -"),
+          child: Text("Item: -"),
         ),
       );
     } else {

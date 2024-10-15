@@ -186,7 +186,7 @@ class _ListPointState extends State<ListPoint> {
         print("Unauthorized 401");
         showLogoutDialog(context);
       } else {
-        print("fetch location: ${response['data']}");
+        print("fetch location list");
         if (mounted) {
           List resData = response['data'];
           if (resData.isNotEmpty) {
@@ -200,7 +200,6 @@ class _ListPointState extends State<ListPoint> {
           });
         }
       }
-      print("pin data: $pointData");
     } else {
       const SnackBar(content: Text("Something went Wrong"));
     }

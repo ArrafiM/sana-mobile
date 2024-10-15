@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sana_mobile/services/socket_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Logout extends StatefulWidget {
@@ -85,6 +86,8 @@ showLogoutConfirmDialog(context) {
 
 void _logout() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
+  final socketService = SocketService();
   await prefs.remove('token');
   await prefs.remove('user_id');
+  socketService.disconnect(); // Disconnect the WebSocket
 }

@@ -308,14 +308,13 @@ class _MapSanaState extends State<MapSana> {
         print("Unauthorized 401");
         showLogoutDialog(context);
       } else {
-        print("fetch location: ${response['data']}");
+        print("fetch location");
         if (mounted) {
           setState(() {
             pinData = response['data'];
           });
         }
       }
-      print("pin data: $pinData");
     } else {
       const SnackBar(content: Text("Something went Wrong"));
     }

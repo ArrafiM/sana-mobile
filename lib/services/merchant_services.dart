@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:sana_mobile/services/user_services.dart';
@@ -7,8 +8,7 @@ class MerchantServices {
   static Future fetchMerchantId(id) async {
     print("call api merchant id : $id");
     String apiUrl = UserServices.apiUrl();
-    var url =
-        '$apiUrl/api/merchants/$id';
+    var url = '$apiUrl/api/merchants/$id';
     String? token = await UserServices.checkToken();
     final uri = Uri.parse(url);
     final response = await http.get(uri, headers: {
@@ -43,5 +43,119 @@ class MerchantServices {
       return 401;
     }
     return null;
+  }
+
+  static Future createMerchant(String name, String desc, File? picture) async {
+    String? token = await UserServices.checkToken();
+    String apiurl = UserServices.apiUrl();
+    var url = Uri.parse('$apiurl/api/merchants');
+    var request = http.MultipartRequest('POST', url)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['name'] = name
+      ..fields['description'] = desc
+      ..files.add(
+        await http.MultipartFile.fromPath(
+          'picture',
+          picture!.path,
+        ),
+      );
+    var response = await request.send();
+    // final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 201) {
+      print('Terjadi kesalahan: ${response.statusCode}');
+      return false;
+    } else {
+      print('Merchant created!: $name');
+      return true;
+    }
+  }
+
+  static Future putMerchant(
+      int id, String name, String desc, File? picture) async {
+    String? token = await UserServices.checkToken();
+    String apiurl = UserServices.apiUrl();
+    var url = Uri.parse('$apiurl/api/merchants/$id');
+    var request = http.MultipartRequest('PUT', url)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['name'] = name
+      ..fields['description'] = desc;
+    if (picture != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'picture',
+          picture.path,
+        ),
+      );
+    }
+
+    var response = await request.send();
+    // final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan: ${response.statusCode}');
+      return false;
+    } else {
+      print('Merchant updated!: $name');
+      return true;
+    }
+  }
+
+  static Future createMerchandise(String name, String desc, File? picture,
+      String price, String merchantId) async {
+    String? token = await UserServices.checkToken();
+    String apiurl = UserServices.apiUrl();
+    var url = Uri.parse('$apiurl/api/merchandise');
+    var request = http.MultipartRequest('POST', url)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['name'] = name
+      ..fields['description'] = desc
+      ..fields['price'] = price
+      ..fields['merchant_id'] = merchantId;
+    if (picture != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'picture',
+          picture.path,
+        ),
+      );
+    }
+    var response = await request.send();
+    // final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 201) {
+      print('Terjadi kesalahan post: merchandise ${response.statusCode}');
+      return false;
+    } else {
+      print('Merchandise created!: $name');
+      return true;
+    }
+  }
+
+  static Future putMerchandise(int id, String name, String desc, File? picture,
+      String price, String merchantId) async {
+    String? token = await UserServices.checkToken();
+    String apiurl = UserServices.apiUrl();
+    var url = Uri.parse('$apiurl/api/merchandise/$id');
+    var request = http.MultipartRequest('PUT', url)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['name'] = name
+      ..fields['description'] = desc
+      ..fields['price'] = price
+      ..fields['merchant_id'] = merchantId;
+    if (picture != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'picture',
+          picture.path,
+        ),
+      );
+    }
+    var response = await request.send();
+    // final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan put: merchandise ${response.statusCode}');
+      return false;
+    } else {
+      print('Merchandise Updated!: $name');
+      return true;
+    }
   }
 }

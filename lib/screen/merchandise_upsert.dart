@@ -5,28 +5,32 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sana_mobile/services/merchant_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
 
-class MerchantCreate extends StatefulWidget {
-  final String name, desc, pathImage;
-  final int merchantId;
-  const MerchantCreate(
+class MerchandiseUpsert extends StatefulWidget {
+  final String name, desc, pathImage, price, merchantId;
+  final int merchandiseId;
+  const MerchandiseUpsert(
       {Key? key,
       required this.name,
       required this.desc,
       required this.merchantId,
-      required this.pathImage})
+      required this.pathImage,
+      required this.price,
+      required this.merchandiseId})
       : super(key: key);
 
   @override
-  State<MerchantCreate> createState() => _MerchantCreateState();
+  State<MerchandiseUpsert> createState() => _MerchandiseUpsertState();
 }
 
-class _MerchantCreateState extends State<MerchantCreate> {
+class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
   String publicApiUrl = "";
   File? _image;
   String pathImage = '';
-  int merchantId = 0;
+  String merchantId = '';
+  int merchandiseId = 0;
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(ImageSource source) async {
@@ -40,14 +44,6 @@ class _MerchantCreateState extends State<MerchantCreate> {
         return;
       }
     } else if (source == ImageSource.gallery) {
-      // PermissionStatus galleryStatus = await Permission.photos.request();
-      // if (!galleryStatus.isGranted) {
-      //   // Jika izin galeri tidak diberikan
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text('Izin akses galeri ditolak')),
-      //   );
-      //   return;
-      // }
       PermissionStatus storageStatus = await Permission.storage.request();
       if (!storageStatus.isGranted) {
         // Jika izin galeri tidak diberikan
@@ -81,7 +77,11 @@ class _MerchantCreateState extends State<MerchantCreate> {
       if (widget.pathImage != '') {
         pathImage = widget.pathImage;
       }
+      if (widget.price != '') {
+        pathImage = widget.price;
+      }
       merchantId = widget.merchantId;
+      merchandiseId = widget.merchandiseId;
       publicApiUrl = "$apiUrl/public/";
     });
   }
@@ -125,14 +125,15 @@ class _MerchantCreateState extends State<MerchantCreate> {
   void _createMerchant() {
     String name = _nameController.text.trim();
     String description = _descriptionController.text.trim();
+    String price = _priceController.text.trim();
 
     // Check if fields are empty
-    if (name.isEmpty || description.isEmpty) {
+    if (name.isEmpty || description.isEmpty || price.isEmpty) {
       _showAlertDialog('Required fields cannot be empty.', true, 'Alert');
       return;
     }
 
-    if (_image == null && merchantId == 0) {
+    if (_image == null && merchandiseId == 0) {
       _showAlertDialog('Please select merchant photo', true, 'Alert');
       return;
     }
@@ -141,11 +142,11 @@ class _MerchantCreateState extends State<MerchantCreate> {
     print('name: $name');
 
     // Add your login logic here (e.g., API call)
-    if (merchantId == 0) {
-      _postMerchant(context, name, description, _image);
+    if (merchandiseId == 0) {
+      _postMerchandise(context, name, description, _image, price);
     } else {
-      print("update merchant id: $merchantId");
-      _putMerchant(context, name, description, _image);
+      print("update merchandise id: $merchandiseId");
+      _putMerchandise(context, name, description, _image, price);
     }
   }
 
@@ -171,11 +172,11 @@ class _MerchantCreateState extends State<MerchantCreate> {
         body: Padding(
             padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
             child: SingleChildScrollView(
-              child: merchantCreateForm(),
+              child: merchandiseUpsertForm(),
             )));
   }
 
-  Container merchantCreateForm() {
+  Container merchandiseUpsertForm() {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(maxWidth: 400),
@@ -201,7 +202,7 @@ class _MerchantCreateState extends State<MerchantCreate> {
                     borderSide: BorderSide(
                         color: Colors.blue), // Warna border saat field fokus
                   ),
-                  hintText: 'Enter nerchant name',
+                  hintText: 'Enter merchandise name',
                   contentPadding: EdgeInsets.symmetric(
                       vertical: 10.0,
                       horizontal: 15.0), // Mengatur padding dalam TextField
@@ -240,6 +241,34 @@ class _MerchantCreateState extends State<MerchantCreate> {
           const SizedBox(height: 10),
 
           Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Price',
+                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+              ),
+              TextField(
+                controller: _priceController,
+                maxLines: null,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black), // Warna border
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Colors.blue), // Warna border saat field fokus
+                  ),
+                  hintText: 'Enter Price',
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 10.0,
+                      horizontal: 15.0), // Mengatur padding dalam TextField
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          Column(
             // mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -247,22 +276,49 @@ class _MerchantCreateState extends State<MerchantCreate> {
               Row(
                 children: [
                   (pathImage != '' && _image == null)
-                      ? CircleAvatar(
-                          backgroundImage:
-                              NetworkImage(publicApiUrl + pathImage),
-                          radius: 50,
+                      ? Container(
+                          width: 90,
+                          height: 120,
+                          decoration: BoxDecoration(
+                              color: Colors.grey,
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(20)),
+                              image: DecorationImage(
+                                  image: NetworkImage(publicApiUrl + pathImage),
+                                  fit: BoxFit.cover)
+                              // border: Border.all()
+                              ),
                         )
                       : _image != null
-                          ? ClipOval(
+                          ? Container(
+                              width: 90,
+                              height: 120,
+                              decoration: const BoxDecoration(
+                                  color: Colors.grey,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20))),
                               child: Image.file(
                                 _image!,
-                                width: 100,
-                                height: 100,
+                                width: 90,
+                                height: 120,
                                 fit: BoxFit.cover,
-                              ),
-                            )
-                          : const ClipOval(
-                              child: Icon(Icons.wallpaper_outlined, size: 100)),
+                              ))
+                          : Container(
+                              width: 90,
+                              height: 120,
+                              decoration: const BoxDecoration(
+                                  color: Colors.grey,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20)),
+                                  image: DecorationImage(
+                                      image: AssetImage(
+                                          "assets/photos/galery.png"),
+                                      fit: BoxFit.scaleDown)
+                                  // border: Border.all()
+                                  ),
+                            ),
+                  // const ClipOval(
+                  //     child: Icon(Icons.wallpaper_outlined, size: 100)),
                   const SizedBox(width: 20),
                   Column(
                     children: [
@@ -335,23 +391,22 @@ class _MerchantCreateState extends State<MerchantCreate> {
     );
   }
 
-  Future<void> _postMerchant(context, name, password, File? image) async {
+  Future<void> _postMerchandise(context, name, desc, File? image, price) async {
     // Contoh menyimpan token setelah login berhasil
-    bool response =
-        await MerchantServices.createMerchant(name, password, image);
-    print("merchant create: $response");
+    bool response = await MerchantServices.createMerchandise(
+        name, desc, image, price, merchantId);
+    print("merchandise create: $response");
     if (!response) {
-      print("login error");
-      _showAlertDialog("Failed create merchant", true, 'Alert');
+      _showAlertDialog("Failed create merchandise", true, 'Alert');
     } else {
-      _showAlertDialog("Merchant [$name] created!", false, 'Successfully');
+      _showAlertDialog("Merchandise [$name] created!", false, 'Successfully');
     }
   }
 
-  Future<void> _putMerchant(context, name, password, File? image) async {
+  Future<void> _putMerchandise(context, name, desc, File? image, price) async {
     // Contoh menyimpan token setelah login berhasil
-    bool response =
-        await MerchantServices.putMerchant(merchantId, name, password, image);
+    bool response = await MerchantServices.putMerchandise(
+        merchandiseId, name, desc, image, price, merchantId);
     print("merchant updated: $response");
     if (!response) {
       _showAlertDialog("Failed update merchant", true, 'Alert');
