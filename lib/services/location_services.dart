@@ -5,8 +5,7 @@ import 'package:sana_mobile/services/user_services.dart';
 class LocationServices {
   static Future<Map?> fetchMyLocation() async {
     String apiUrl = UserServices.apiUrl();
-    var url =
-        '$apiUrl/api/locations?my=1';
+    var url = '$apiUrl/api/locations?my=1';
     const token =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE3MjM3OTEwMTgsInVzZXJfaWQiOjF9.FQbFSraccDmW1cA-vpG20ZyclEKtNr6kiXTL88d8UaI';
     final uri = Uri.parse(url);
@@ -29,8 +28,7 @@ class LocationServices {
       lat, long, radius, page, page_size) async {
     print("call api location, lat: $lat, long: $long");
     String apiUrl = UserServices.apiUrl();
-    var url =
-        '$apiUrl/api/locations/nearest'
+    var url = '$apiUrl/api/locations/nearest'
         '?latitude=$lat&longitude=$long&radius=$radius&page=$page&page_size=$page_size';
     // String token = 'nothing';
     String? token = await UserServices.checkToken();
@@ -55,5 +53,29 @@ class LocationServices {
       return 401;
     }
     return null;
+  }
+
+  static Future getNewLatlong(lat, long) async {
+    print("POST socket lat: $lat");
+    print("POST socket long: $long");
+
+    String? token = await UserServices.checkToken();
+    String? apiUrl = UserServices.apiUrl();
+    final response = await http.get(
+      Uri.parse('$apiUrl/api/locations/new?lat=$lat&long=$long'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan: ${response.statusCode}');
+      return false;
+    } else {
+      print('Latlong posted to API: ${json['data']}');
+      return true;
+    }
   }
 }

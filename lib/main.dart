@@ -5,9 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sana_mobile/screen/loginpage.dart';
 import 'package:sana_mobile/screen/main_navigation.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
 }
@@ -27,6 +33,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _tokenFuture = _checkToken();
+    checkAndRequestPermissions();
   }
 
   void didChangeAppLifecycleState(AppLifecycleState state) async {
@@ -38,7 +45,8 @@ class _MyAppState extends State<MyApp> {
       // Reconnect WebSocket when the app resumes
       String? userId = await UserServices.checkMyId();
       if (userId != "") {
-        _socketService.connect('ws://172.20.10.3:8080/ws?user_id=user$userId');
+        _socketService
+            .connect('ws://192.168.18.32:8080/ws?user_id=user$userId');
       }
     }
   }
@@ -46,6 +54,23 @@ class _MyAppState extends State<MyApp> {
   Future<String?> _checkToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
+  }
+
+  Future<void> checkAndRequestPermissions() async {
+    // Cek izin notifikasi
+    var status = await Permission.notification.status;
+
+    if (status.isDenied) {
+      // Meminta izin notifikasi
+      await Permission.notification.request();
+    }
+
+    // Periksa ulang status
+    if (await Permission.notification.isGranted) {
+      print("Izin notifikasi diberikan");
+    } else {
+      print("Izin notifikasi ditolak");
+    }
   }
 
   @override
@@ -66,7 +91,7 @@ class _MyAppState extends State<MyApp> {
           } else {
             return snapshot.data == null
                 ? const LoginForm()
-                : const MainNavigation();
+                : const MainNavigation(index: 1);
           }
         },
       ),

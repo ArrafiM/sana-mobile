@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class SocketService {
@@ -53,5 +54,28 @@ class SocketService {
 
   bool shouldTriggerApiCall(String message) {
     return message.contains("updateChats"); // Customize this condition
+  }
+
+  bool postLocation(userId, lat, long) {
+    Map location = {'lat': lat, 'long': long, 'user_id': userId};
+    Map msg = {
+      'sender_id': '$userId',
+      'receiver_id': '$userId',
+      'content': 'postLocation',
+      'location': jsonEncode(location)
+    };
+    sendMessage(jsonEncode(msg));
+    triggerPostLocation(userId);
+    return true;
+  }
+
+  bool triggerPostLocation(userId) {
+    Map msg = {
+      'sender_id': '$userId',
+      'receiver_id': '$userId',
+      'content': 'postLocation'
+    };
+    sendMessage(jsonEncode(msg));
+    return true;
   }
 }

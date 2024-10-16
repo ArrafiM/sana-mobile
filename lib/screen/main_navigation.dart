@@ -4,7 +4,8 @@ import 'package:sana_mobile/screen/explore_screen.dart';
 import 'package:sana_mobile/screen/sana.dart';
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  final int index;
+  const MainNavigation({Key? key, required this.index}) : super(key: key);
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
@@ -14,6 +15,14 @@ class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 1;
   static const TextStyle optionStyle =
       TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      _selectedIndex = widget.index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +62,7 @@ class _MainNavigationState extends State<MainNavigation> {
       ),
       body: <Widget>[
         const ExploreScreen(),
-
         const SanaScreen(),
-
         const MerchantScreen()
       ][_selectedIndex],
     );

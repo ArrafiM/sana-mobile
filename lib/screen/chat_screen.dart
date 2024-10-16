@@ -84,19 +84,19 @@ class _ChatScreenState extends State<ChatScreen> {
         body: _chats());
   }
 
-  Padding _newChat() {
-    return Padding(
-        padding: const EdgeInsets.only(right: 20),
-        child: GestureDetector(
-          onTap: () {
-            print('Add new chat');
-          },
-          child: const Icon(
-            Icons.add_circle_outline,
-            size: 35,
-          ),
-        ));
-  }
+  // Padding _newChat() {
+  //   return Padding(
+  //       padding: const EdgeInsets.only(right: 20),
+  //       child: GestureDetector(
+  //         onTap: () {
+  //           print('Add new chat');
+  //         },
+  //         child: const Icon(
+  //           Icons.add_circle_outline,
+  //           size: 35,
+  //         ),
+  //       ));
+  // }
 
   ListView _chats() {
     return ListView.separated(

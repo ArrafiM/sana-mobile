@@ -3,6 +3,7 @@ import 'package:sana_mobile/screen/main_navigation.dart';
 import 'package:sana_mobile/screen/registerpage.dart';
 import 'package:sana_mobile/services/user_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -261,6 +262,14 @@ showMessageDialog(BuildContext context, String message) {
   );
 }
 
+Future<void> getToken() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // Mendapatkan registration token
+  String? token = await messaging.getToken();
+  print("FCM Registration Token: $token");
+}
+
 Future<void> _fetchLogin(context, email, password) async {
   // Contoh menyimpan token setelah login berhasil
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -279,9 +288,10 @@ Future<void> _fetchLogin(context, email, password) async {
     await prefs.setString('token', response['token']);
     String userId = '${response['user_id']}';
     await prefs.setString('user_id', userId);
+    getToken();
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const MainNavigation()),
+      MaterialPageRoute(builder: (context) => const MainNavigation(index: 1)),
     );
   }
 }

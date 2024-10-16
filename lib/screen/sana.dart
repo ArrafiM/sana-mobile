@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/models/detected_location.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:sana_mobile/services/location_services.dart';
 import 'package:sana_mobile/services/socket_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/map_sana.dart';
@@ -50,12 +51,18 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   Future<void> _webSocketConnect() async {
     // Connect to the WebSocket server
     String? userId = await UserServices.checkMyId();
-    _socketService.connect('ws://172.20.10.3:8080/ws?user_id=user$userId');
-
+    _socketService.connect('ws://192.168.18.32:8080/ws?user_id=user$userId');
     // Listen for messages from the WebSocket
-    _messageSubscription = _socketService.messageStream.listen((message) {
+    _messageSubscription = _socketService.messageStream.listen((message) async {
       // Handle incoming messages
       print("Received message: $message");
+      if (message == 'postMyLocationuser$userId') {
+        // _socketService.postLocation(userId, lat, long);
+        bool response = await LocationServices.getNewLatlong(lat, long);
+        if (response) {
+          _socketService.triggerPostLocation(userId);
+        }
+      }
     });
   }
 
@@ -68,9 +75,19 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       _getCurrentLocation();
+    }
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      // Disconnect WebSocket when the app goes to background or is closed
+      _socketService.disconnect();
+    } else if (state == AppLifecycleState.resumed) {
+      // Reconnect WebSocket when the app resumes
+      String? userId = await UserServices.checkMyId();
+      _socketService.connect('ws://192.168.18.32:8080/ws?user_id=user$userId');
     }
   }
 
@@ -93,6 +110,8 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
           long = position.longitude;
         });
       }
+      String? userId = await UserServices.checkMyId();
+      _socketService.triggerPostLocation(userId);
     } else {
       print("Location permission denied");
     }
@@ -112,4 +131,11 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
             ),
     );
   }
+
+  // Future<bool> _postNewLocation(lat, long) async {
+  //   // Contoh menyimpan token setelah login berhasil
+  //   bool response = await LocationServices.getNewLatlong(lat, long);
+  //   print("merchant updated: $response");
+  //   return response;
+  // }
 }
