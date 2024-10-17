@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:sana_mobile/services/user_services.dart';
+import 'package:multi_image_picker_plus/multi_image_picker_plus.dart';
 
 class MerchantServices {
   static Future fetchMerchantId(id) async {
@@ -155,6 +156,42 @@ class MerchantServices {
       return false;
     } else {
       print('Merchandise Updated!: $name');
+      return true;
+    }
+  }
+
+  static Future uploadMerchantImages(
+      String merchantId, List<Asset> images, List<int> removeId) async {
+    print("upload landing image merchant id: $merchantId");
+
+    // return false;
+    String? token = await UserServices.checkToken();
+    String apiurl = UserServices.apiUrl();
+    var url = Uri.parse('$apiurl/api/merchants/uploadlanding');
+    var request = http.MultipartRequest('POST', url)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['merchant_id'] = merchantId;
+    if (images.isNotEmpty) {
+      for (var asset in images) {
+        var byteData = await asset.getByteData();
+        var multipartFile = http.MultipartFile.fromBytes(
+          'files[]', // Nama field di API
+          byteData.buffer.asUint8List(),
+          filename: asset.name,
+        );
+        request.files.add(multipartFile);
+      }
+    }
+    if (removeId.isNotEmpty) {
+      request.fields['remove_id'] = "$removeId";
+    }
+    var response = await request.send();
+    // final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 201) {
+      print('Terjadi kesalahan post: merchandise ${response.statusCode}');
+      return false;
+    } else {
+      print('Merchant image uploaded!: true');
       return true;
     }
   }

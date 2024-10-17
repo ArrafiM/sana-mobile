@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sana_mobile/screen/landingimage_merchant.dart';
 import 'package:sana_mobile/screen/merchandise_upsert.dart';
 import 'package:sana_mobile/screen/merchant_create.dart';
 import 'package:sana_mobile/shared/logout.dart';
@@ -140,6 +141,33 @@ class _MyMerchantTopbarState extends State<MyMerchantTopbar> {
                                 Padding(
                                   padding: EdgeInsets.only(left: 5),
                                   child: Text("Add Item"),
+                                )
+                              ],
+                            ))),
+                    Divider(color: Colors.grey[100]),
+                    GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => LandingimageMerchant(
+                                        merchantId:
+                                            widget.merchant['ID'].toString(),
+                                        landingImage:
+                                            widget.merchant['landing_images'],
+                                      )));
+                        },
+                        child: Container(
+                            height: 30,
+                            decoration:
+                                const BoxDecoration(color: Colors.white),
+                            width: MediaQuery.of(context).size.width,
+                            child: const Row(
+                              children: [
+                                Icon(Icons.photo_library_outlined),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 5),
+                                  child: Text("Landing Image"),
                                 )
                               ],
                             ))),

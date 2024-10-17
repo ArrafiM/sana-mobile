@@ -43,11 +43,8 @@ class _MyAppState extends State<MyApp> {
       _socketService.disconnect();
     } else if (state == AppLifecycleState.resumed) {
       // Reconnect WebSocket when the app resumes
-      String? userId = await UserServices.checkMyId();
-      if (userId != "") {
-        _socketService
-            .connect('ws://192.168.18.32:8080/ws?user_id=user$userId');
-      }
+      String wsUrl = await UserServices.wsUrl();
+      _socketService.connect(wsUrl);
     }
   }
 
@@ -77,9 +74,17 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(
-        useMaterial3: true,
-      ),
+      theme: ThemeData(
+          colorScheme: ColorScheme.light(
+        primary: Colors.blue,
+        secondary: Colors.green,
+        // background: Colors.white,
+        surface: Colors.grey[200]!,
+        error: Colors.red,
+      )),
+      // theme: ThemeData.light(
+      //   useMaterial3: true,
+      // ),
       darkTheme: ThemeData.dark(),
       home: FutureBuilder<String?>(
         future: _tokenFuture,

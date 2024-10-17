@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:sana_mobile/screen/merchandise_upsert.dart';
 import 'package:sana_mobile/screen/merchant_create.dart';
 import 'package:sana_mobile/services/merchant_services.dart';
 import 'package:sana_mobile/services/socket_services.dart';
@@ -320,33 +321,56 @@ class _MerchantScreenState extends State<MerchantScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          merchandise[index]['name'],
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
                         SizedBox(
                           width: MediaQuery.of(context).size.width - 160,
                           child: Text(
-                            merchandise[index]['description'],
-                            style: const TextStyle(fontSize: 12),
+                            merchandise[index]['name'],
+                            style: const TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                         ),
+                        SizedBox(
+                            height: 45, // Atur tinggi kotak scroll
+                            // decoration: BoxDecoration(
+                            //     border: Border.all(color: Colors.grey)),
+                            width: MediaQuery.of(context).size.width - 160,
+                            child: SingleChildScrollView(
+                              child: Text(
+                                merchandise[index]['description'],
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            )),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: Text(
-                        formatCurrency(merchandise[index]['price'].toDouble()),
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color.fromARGB(255, 23, 85, 136)),
-                      ),
-                    )
+                    Text(
+                      formatCurrency(merchandise[index]['price'].toDouble()),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color.fromARGB(255, 23, 85, 136)),
+                    ),
                   ],
                 ),
-              )
+              ),
+              Padding(
+                  padding: const EdgeInsets.only(right: 5),
+                  child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => MerchandiseUpsert(
+                                  name: merchandise[index]['name'],
+                                  desc: merchandise[index]['description'],
+                                  pathImage: merchandise[index]['picture'],
+                                  price: merchandise[index]['price'].toString(),
+                                  merchandiseId: merchandise[index]['ID'],
+                                  merchantId: merchandise[index]['merchant_id']
+                                      .toString())),
+                        );
+                      },
+                      child: const Icon(Icons.edit_note_outlined,
+                          color: Colors.green, size: 35)))
             ],
           ));
     }
@@ -380,9 +404,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
             }
           });
         }
-        print("my merchant: $merchant");
       }
-      print("landing image data: $landingImage");
     } else {
       const SnackBar(content: Text("Something went Wrong"));
     }

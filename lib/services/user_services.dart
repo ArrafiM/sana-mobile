@@ -67,8 +67,14 @@ class UserServices {
   }
 
   static String apiUrl() {
-    String apiUrl = "https://7d44-114-122-79-66.ngrok-free.app";
+    String apiUrl =
+        "https://bb91-2404-8000-1024-c92-c55f-c9f6-9b2c-a8e3.ngrok-free.app";
     return apiUrl;
+  }
+
+  static Future wsUrl() async {
+    String? userId = await UserServices.checkMyId();
+    return 'ws://192.168.18.32:8080/ws?user_id=user$userId';
   }
 
   static Future<String?> checkToken() async {

@@ -138,6 +138,9 @@ class _MapTopbarState extends State<MapTopbar> {
         unreadMessage = response['unread'];
       });
     } else {
+      if (response == 401) {
+        showLogoutDialog(context);
+      }
       // const SnackBar(content: Text("Something went Wrong"));
     }
   }

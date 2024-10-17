@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:sana_mobile/services/location_services.dart';
 import 'package:sana_mobile/services/socket_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
+// import 'package:sana_mobile/shared/logout.dart';
 import 'package:sana_mobile/shared/map_sana.dart';
 import 'package:sana_mobile/shared/map_topbar.dart';
 
@@ -51,7 +52,8 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
   Future<void> _webSocketConnect() async {
     // Connect to the WebSocket server
     String? userId = await UserServices.checkMyId();
-    _socketService.connect('ws://192.168.18.32:8080/ws?user_id=user$userId');
+    String wsUrl = await UserServices.wsUrl();
+    _socketService.connect(wsUrl);
     // Listen for messages from the WebSocket
     _messageSubscription = _socketService.messageStream.listen((message) async {
       // Handle incoming messages
@@ -86,8 +88,8 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
       _socketService.disconnect();
     } else if (state == AppLifecycleState.resumed) {
       // Reconnect WebSocket when the app resumes
-      String? userId = await UserServices.checkMyId();
-      _socketService.connect('ws://192.168.18.32:8080/ws?user_id=user$userId');
+      String wsUrl = await UserServices.wsUrl();
+      _socketService.connect(wsUrl);
     }
   }
 
@@ -110,8 +112,9 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
           long = position.longitude;
         });
       }
-      String? userId = await UserServices.checkMyId();
-      _socketService.triggerPostLocation(userId);
+      _postNewLocation(lat, long);
+      // String? userId = await UserServices.checkMyId();
+      // _socketService.triggerPostLocation(userId);
     } else {
       print("Location permission denied");
     }
@@ -132,10 +135,13 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     );
   }
 
-  // Future<bool> _postNewLocation(lat, long) async {
-  //   // Contoh menyimpan token setelah login berhasil
-  //   bool response = await LocationServices.getNewLatlong(lat, long);
-  //   print("merchant updated: $response");
-  //   return response;
-  // }
+  Future<bool> _postNewLocation(lat, long) async {
+    // Contoh menyimpan token setelah login berhasil
+    bool response = await LocationServices.getNewLatlong(lat, long);
+    print("merchant updated: $response");
+    // if (!response) {
+    // showLogoutDialog(context);
+    // }
+    return response;
+  }
 }

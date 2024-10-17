@@ -29,12 +29,9 @@ class LocationServices {
     print("call api location, lat: $lat, long: $long");
     String apiUrl = UserServices.apiUrl();
     var url = '$apiUrl/api/locations/nearest'
-        '?latitude=$lat&longitude=$long&radius=$radius&page=$page&page_size=$page_size';
-    // String token = 'nothing';
+        '?latitude=$lat&longitude=$long&radius=$radius&page=$page&page_size=$page_size'
+        '&excludemy=true';
     String? token = await UserServices.checkToken();
-    // print("token data: $token");
-    // const token =
-    //     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE3MjQ3NjI1NTcsInVzZXJfaWQiOjF9.HqHFQwzdcwlChgtaG8coAJNVjSfW3BeVuSJlUjAsbok';
     final uri = Uri.parse(url);
     final response = await http.get(uri, headers: {
       'Content-Type': 'application/json',
@@ -48,7 +45,6 @@ class LocationServices {
       Map data = {'data': result};
       return data;
     } else if (response.statusCode == 401) {
-      // await handleUnauthorized(context);
       await UserServices.handleUnauthorized();
       return 401;
     }
@@ -69,12 +65,13 @@ class LocationServices {
         'Authorization': 'Bearer $token',
       },
     );
-    final json = jsonDecode(response.body) as Map;
+    // final json = jsonDecode(response.body) as Map;
     if (response.statusCode != 200) {
       print('Terjadi kesalahan: ${response.statusCode}');
+      await UserServices.handleUnauthorized();
       return false;
     } else {
-      print('Latlong posted to API: ${json['data']}');
+      // print('Latlong posted to API: ${json['data']}');
       return true;
     }
   }

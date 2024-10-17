@@ -78,7 +78,7 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
         pathImage = widget.pathImage;
       }
       if (widget.price != '') {
-        pathImage = widget.price;
+        _priceController.text = widget.price;
       }
       merchantId = widget.merchantId;
       merchandiseId = widget.merchandiseId;
@@ -143,10 +143,9 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
 
     // Add your login logic here (e.g., API call)
     if (merchandiseId == 0) {
-      _postMerchandise(context, name, description, _image, price);
+      _postMerchandise(context, name, description, price);
     } else {
-      print("update merchandise id: $merchandiseId");
-      _putMerchandise(context, name, description, _image, price);
+      _putMerchandise(context, name, description, price);
     }
   }
 
@@ -391,10 +390,10 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
     );
   }
 
-  Future<void> _postMerchandise(context, name, desc, File? image, price) async {
+  Future<void> _postMerchandise(context, name, desc, price) async {
     // Contoh menyimpan token setelah login berhasil
     bool response = await MerchantServices.createMerchandise(
-        name, desc, image, price, merchantId);
+        name, desc, _image, price, merchantId);
     print("merchandise create: $response");
     if (!response) {
       _showAlertDialog("Failed create merchandise", true, 'Alert');
@@ -403,10 +402,10 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
     }
   }
 
-  Future<void> _putMerchandise(context, name, desc, File? image, price) async {
+  Future<void> _putMerchandise(context, name, desc, price) async {
     // Contoh menyimpan token setelah login berhasil
     bool response = await MerchantServices.putMerchandise(
-        merchandiseId, name, desc, image, price, merchantId);
+        merchandiseId, name, desc, _image, price, merchantId);
     print("merchant updated: $response");
     if (!response) {
       _showAlertDialog("Failed update merchant", true, 'Alert');
