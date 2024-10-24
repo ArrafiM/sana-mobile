@@ -85,6 +85,19 @@ class _MerchantScreenState extends State<MerchantScreen> {
     fetchMyMerchant();
   }
 
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      // Disconnect WebSocket when the app goes to background or is closed
+      SocketService().disconnect();
+    } else if (state == AppLifecycleState.resumed) {
+      fetchMyMerchant();
+      // Reconnect WebSocket when the app resumes
+      String wsUrl = await UserServices.wsUrl();
+      SocketService().connect(wsUrl);
+    }
+  }
+
   @override
   void dispose() {
     _messageSubscription.cancel(); // Cancel the subscription

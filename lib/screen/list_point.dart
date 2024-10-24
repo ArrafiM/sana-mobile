@@ -167,7 +167,7 @@ class _ListPointState extends State<ListPoint> {
                       ],
                     ),
                     Text(
-                        "${pointData[index]['distance'].toStringAsFixed(1)} m"),
+                        "${pointData[index]['distance'].toStringAsFixed(1)} km"),
                   ],
                 )),
           ],
@@ -180,7 +180,7 @@ class _ListPointState extends State<ListPoint> {
       _isLoading = true;
     });
     final response = await LocationServices.fetchNearestLocations(
-        lat, long, radius, page, pageSize);
+        lat, long, radius, page, pageSize, null, null);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");

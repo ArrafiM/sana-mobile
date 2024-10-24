@@ -302,7 +302,7 @@ class _MapSanaState extends State<MapSana> {
 
   Future<void> _fetchNearestLocations(lat, long) async {
     final response =
-        await LocationServices.fetchNearestLocations(lat, long, 2000, 1, 1000);
+        await LocationServices.fetchNearestLocations(lat, long, 2000, 1, 1000,null,null);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");

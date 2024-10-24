@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:sana_mobile/services/helper_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
 import 'package:multi_image_picker_plus/multi_image_picker_plus.dart';
+import 'package:path/path.dart' as path;
 
 class MerchantServices {
   static Future fetchMerchantId(id) async {
@@ -81,10 +84,13 @@ class MerchantServices {
       ..fields['name'] = name
       ..fields['description'] = desc;
     if (picture != null) {
+      Uint8List? image = await HelperServices.compressFile(picture);
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'picture',
-          picture.path,
+        http.MultipartFile.fromBytes(
+          'picture', // Nama field sesuai API yang menerima file
+          image!.toList(),
+          filename: path.basename(picture.path), // Nama file yang akan diupload
+          // contentType: MediaType('image', 'jpeg'), // Ubah sesuai tipe file
         ),
       );
     }

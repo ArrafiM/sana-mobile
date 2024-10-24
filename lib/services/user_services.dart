@@ -68,12 +68,13 @@ class UserServices {
 
   static String apiUrl() {
     String apiUrl =
-        "https://bb91-2404-8000-1024-c92-c55f-c9f6-9b2c-a8e3.ngrok-free.app";
+        "https://c5c4-2404-8000-1024-c92-654b-7217-1189-5bf6.ngrok-free.app";
     return apiUrl;
   }
 
   static Future wsUrl() async {
     String? userId = await UserServices.checkMyId();
+    // return 'ws://192.168.18.32:8080/ws?user_id=user$userId';
     return 'ws://192.168.18.32:8080/ws?user_id=user$userId';
   }
 
@@ -85,6 +86,11 @@ class UserServices {
   static Future<String?> checkMyId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('user_id');
+  }
+
+  static Future<String?> getLocaData(String name) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(name);
   }
 
   static Future<void> handleUnauthorized() async {

@@ -28,6 +28,10 @@ class _MyMerchantTopbarState extends State<MyMerchantTopbar> {
 
   @override
   Widget build(BuildContext context) {
+    return _appBar(context);
+  }
+
+  AppBar _appBar(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
       title: const Column(
@@ -46,7 +50,7 @@ class _MyMerchantTopbarState extends State<MyMerchantTopbar> {
       centerTitle: true,
       actions: <Widget>[
         IconButton(
-          icon: const Icon(Icons.menu),
+          icon: const Icon(Icons.settings_outlined),
           onPressed: () {
             // Aksi saat tombol notifications ditekan
             showModalSheet(context, null);

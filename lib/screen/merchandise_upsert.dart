@@ -157,11 +157,11 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Create',
+                'My merchant',
                 style: TextStyle(fontSize: 12),
               ),
               Text(
-                'Merchant',
+                'Item',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ],
@@ -201,7 +201,7 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
                     borderSide: BorderSide(
                         color: Colors.blue), // Warna border saat field fokus
                   ),
-                  hintText: 'Enter merchandise name',
+                  hintText: 'Enter item name',
                   contentPadding: EdgeInsets.symmetric(
                       vertical: 10.0,
                       horizontal: 15.0), // Mengatur padding dalam TextField
@@ -271,7 +271,7 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
             // mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Merchant photo'),
+              const Text('Item photo'),
               Row(
                 children: [
                   (pathImage != '' && _image == null)

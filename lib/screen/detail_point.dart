@@ -233,7 +233,7 @@ class _DetailPointState extends State<DetailPoint> {
       return const Padding(
         padding: EdgeInsets.only(top: 10),
         child: Center(
-          child: Text("Merchandise: -"),
+          child: Text("Item: -"),
         ),
       );
     } else {
@@ -265,7 +265,6 @@ class _DetailPointState extends State<DetailPoint> {
                               image: NetworkImage(
                                   publicApiUrl + merchandise[index]['picture']),
                               fit: BoxFit.cover)
-                          // border: Border.all()
                           ),
                     ),
                   )),
@@ -278,31 +277,35 @@ class _DetailPointState extends State<DetailPoint> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          merchandise[index]['name'],
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
                         SizedBox(
                           width: MediaQuery.of(context).size.width - 160,
                           child: Text(
-                            merchandise[index]['description'],
-                            style: const TextStyle(fontSize: 12),
+                            merchandise[index]['name'],
+                            style: const TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                         ),
+                        SizedBox(
+                            height: 45, // Atur tinggi kotak scroll
+                            // decoration: BoxDecoration(
+                            //     border: Border.all(color: Colors.grey)),
+                            width: MediaQuery.of(context).size.width - 160,
+                            child: SingleChildScrollView(
+                              child: Text(
+                                merchandise[index]['description'],
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            )),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: Text(
-                        HelperServices.formatCurrency(
-                            merchandise[index]['price'].toDouble()),
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color.fromARGB(255, 23, 85, 136)),
-                      ),
-                    )
+                    Text(
+                      HelperServices.formatCurrency(
+                          merchandise[index]['price'].toDouble()),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color.fromARGB(255, 23, 85, 136)),
+                    ),
                   ],
                 ),
               )

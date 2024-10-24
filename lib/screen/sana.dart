@@ -9,6 +9,7 @@ import 'package:sana_mobile/services/user_services.dart';
 // import 'package:sana_mobile/shared/logout.dart';
 import 'package:sana_mobile/shared/map_sana.dart';
 import 'package:sana_mobile/shared/map_topbar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SanaScreen extends StatefulWidget {
   const SanaScreen({super.key});
@@ -78,16 +79,13 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.resumed) {
-      _getCurrentLocation();
-    }
-
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       // Disconnect WebSocket when the app goes to background or is closed
       _socketService.disconnect();
     } else if (state == AppLifecycleState.resumed) {
       // Reconnect WebSocket when the app resumes
+      _getCurrentLocation();
       String wsUrl = await UserServices.wsUrl();
       _socketService.connect(wsUrl);
     }
@@ -113,6 +111,10 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
         });
       }
       _postNewLocation(lat, long);
+      //localStorage
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('lat', lat.toString());
+      await prefs.setString('long', long.toString());
       // String? userId = await UserServices.checkMyId();
       // _socketService.triggerPostLocation(userId);
     } else {
