@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UserServices {
   static Future<Map?> fetchUsers() async {
@@ -67,15 +68,14 @@ class UserServices {
   }
 
   static String apiUrl() {
-    String apiUrl =
-        "https://c5c4-2404-8000-1024-c92-654b-7217-1189-5bf6.ngrok-free.app";
+    String apiUrl = "${dotenv.env['API_URL']}";
     return apiUrl;
   }
 
   static Future wsUrl() async {
     String? userId = await UserServices.checkMyId();
-    // return 'ws://192.168.18.32:8080/ws?user_id=user$userId';
-    return 'ws://192.168.18.32:8080/ws?user_id=user$userId';
+    var wsUrl = dotenv.env['WS_URL'];
+    return '$wsUrl?user_id=user$userId';
   }
 
   static Future<String?> checkToken() async {

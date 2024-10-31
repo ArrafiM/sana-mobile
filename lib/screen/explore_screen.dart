@@ -222,7 +222,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     // print("item $idx, length: ${itemData.length}");
     if (itemData.isNotEmpty) {
       return SizedBox(
-        height: 170, // Tinggi khusus untuk ListView horizontal
+        height: 180, // Tinggi khusus untuk ListView horizontal
         child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 10, right: 20),
@@ -258,7 +258,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           itemData[index]['picture']),
                                       fit: BoxFit.cover)),
                             ),
-                      Text("Item ke ${index + 1}"),
+                      SizedBox(
+                        width: 130,
+                        child: Text(
+                          "${itemData[index]['name']}",
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       Text(HelperServices.formatCurrency(
                           itemData[index]['price'].toDouble())),
                     ]);

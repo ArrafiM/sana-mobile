@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:sana_mobile/screen/chatroom_screen.dart';
+import 'package:sana_mobile/services/chat_services.dart';
 import 'package:sana_mobile/services/helper_services.dart';
 import 'package:sana_mobile/services/merchant_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
@@ -26,6 +28,9 @@ class _DetailPointState extends State<DetailPoint> {
   bool isLoad = true;
   Map<String, dynamic> merchant = {};
   List landingImage = [];
+  Map user = {};
+  Map chatRoom = {};
+  String? senderId;
 
   List merchandise = ['0'];
 
@@ -39,6 +44,7 @@ class _DetailPointState extends State<DetailPoint> {
       pointData = widget.point;
     });
     _updatePalette();
+    _myId();
     fetchMerchant(pointData['merchant']['ID']);
   }
 
@@ -59,6 +65,13 @@ class _DetailPointState extends State<DetailPoint> {
 
   Future<void> _refresh() async {
     fetchMerchant(pointData['merchant']['ID']);
+  }
+
+  Future _myId() async {
+    String? userId = await UserServices.checkMyId();
+    setState(() {
+      senderId = userId;
+    });
   }
 
   @override
@@ -112,7 +125,19 @@ class _DetailPointState extends State<DetailPoint> {
                         return _merchandiseList(index);
                       }
                     },
-                  )));
+                  )),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(right: 5, bottom: 5),
+          child: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChatroomScreen(room: chatRoom)));
+            },
+            child: const Icon(Icons.question_answer),
+          ),
+        ));
   }
 
   Container sliderIndicator() {
@@ -264,8 +289,7 @@ class _DetailPointState extends State<DetailPoint> {
                           image: DecorationImage(
                               image: NetworkImage(
                                   publicApiUrl + merchandise[index]['picture']),
-                              fit: BoxFit.cover)
-                          ),
+                              fit: BoxFit.cover)),
                     ),
                   )),
               Padding(
@@ -320,24 +344,44 @@ class _DetailPointState extends State<DetailPoint> {
       if (response == 401) {
         print("Unauthorized 401");
       } else {
-        print("fetch merchang: ${response['data']['name']}");
         List merchandiseData = response['data']['merchandise'];
+        Map userData = response['data']['user'];
         if (mounted) {
           setState(() {
             merchant = response['data'];
+            user = userData;
             landingImage = response['data']['landing_images'];
             if (merchandiseData.isEmpty) {
               merchandise = ['0'];
             } else {
               merchandise = merchandiseData;
             }
+            chatRoom = {
+              "ID": 0,
+              "receiverdata": {
+                "id": userData['ID'],
+                "name": userData['name'],
+                "picture": userData['picture']
+              }
+            };
             isLoad = false;
           });
+          fetchGetRoom(userData['ID']);
         }
       }
-      print("landing image data: $landingImage");
     } else {
       const SnackBar(content: Text("Something went Wrong"));
+    }
+  }
+
+  Future<void> fetchGetRoom(receiverId) async {
+    final response = await ChatServices.getRoom(receiverId, senderId);
+    if (response != null) {
+      setState(() {
+        chatRoom['ID'] = response['ID'];
+      });
+    } else {
+      // const SnackBar(content: Text("Something went Wrong"));
     }
   }
 }

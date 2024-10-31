@@ -6,7 +6,7 @@ import 'package:sana_mobile/services/user_services.dart';
 // import 'package:web_socket_channel/status.dart' as status;
 
 class ChatroomScreen extends StatefulWidget {
-  final Map<String, dynamic> room;
+  final Map room;
   const ChatroomScreen({Key? key, required this.room}) : super(key: key);
 
   @override
@@ -18,7 +18,7 @@ class _ChatroomScreenState extends State<ChatroomScreen> {
   final List<Map<String, dynamic>> _messages = [];
   late StreamSubscription<String> _messageSubscription;
   int roomId = 0;
-  Map<String, dynamic> roomData = {};
+  Map roomData = {};
   String publicApiUrl = "";
   String? myId = "";
   int receiverId = 0;
@@ -31,16 +31,21 @@ class _ChatroomScreenState extends State<ChatroomScreen> {
   @override
   void initState() {
     super.initState();
-    _websocketConnect();
 
     // Ambil informasi dari room
-    String apiUrl = UserServices.apiUrl();
-    setState(() {
-      roomId = widget.room['ID'];
-      roomData = widget.room;
-      publicApiUrl = "$apiUrl/public/";
-      receiverId = widget.room['receiverdata']['id'];
-    });
+    Map room = widget.room;
+    if (room.isNotEmpty) {
+      String apiUrl = UserServices.apiUrl();
+      setState(() {
+        roomId = room['ID'];
+        roomData = room;
+        publicApiUrl = "$apiUrl/public/";
+        receiverId = room['receiverdata']['id'];
+      });
+    }
+    if (room['ID'] != 0) {
+      _websocketConnect();
+    }
 
     _fetchChatData(
         _currentPage, 15, false, true); // Ambil data chat saat pertama kali
@@ -75,6 +80,7 @@ class _ChatroomScreenState extends State<ChatroomScreen> {
   }
 
   Future<void> _fetchChatData(page, limit, isNew, readMsg) async {
+    print("roomId: $roomId");
     if (_isLoading || !_hasMoreData) {
       return; // Cegah multiple request atau jika tidak ada data lebih
     }
@@ -234,19 +240,26 @@ class _ChatroomScreenState extends State<ChatroomScreen> {
     );
   }
 
+  void _newRoom(newRoomId) {
+    setState(() {
+      roomId = newRoomId;
+    });
+    _websocketConnect();
+  }
+
   Future<void> _storeMessage(receiverId, msg) async {
     final response = await ChatServices.sendMessage(receiverId, msg);
     if (response != null) {
       final data = response['data'] as Map;
       setState(() {
         _hasMoreData = true;
-        if (roomId == 0) {
-          roomId = data['chatroom_id'];
-        }
       });
+      if (roomId == 0) {
+        _newRoom(data['chatroom_id']);
+      }
       _fetchChatData(1, 1, true, false);
+      print("send new message!: $data");
     } else {
-      // const SnackBar(content: Text("Something went Wrong"));
       throw Exception('Failed to load chats');
     }
   }
