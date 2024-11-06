@@ -219,64 +219,120 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   SizedBox itemList(int idx) {
     List itemData = merchantData[idx]['merchant']['merchandise'];
-    // print("item $idx, length: ${itemData.length}");
     if (itemData.isNotEmpty) {
+      double hg = 180;
+      if (itemData.length == 1) hg = 110;
       return SizedBox(
-        height: 180, // Tinggi khusus untuk ListView horizontal
-        child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(left: 10, right: 20),
-            separatorBuilder: (context, index) => const SizedBox(
-                  width: 10,
-                ),
-            itemCount: itemData.length + 1,
-            itemBuilder: (context, index) {
-              if (index == maxItem || index == itemData.length) {
-                // return const Icon(Icons.arrow_circle_right_outlined,
-                //     size: 35, color: Colors.grey);
-                return const SizedBox.shrink();
-              } else {
-                return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      itemData[index]['picture'] == ""
-                          ? Container(
-                              height: 120,
-                              width: 130,
-                              decoration: BoxDecoration(
-                                  color: Colors.grey,
-                                  borderRadius: BorderRadius.circular(10)))
-                          : Container(
-                              height: 120,
-                              width: 130,
-                              decoration: BoxDecoration(
-                                  color: Colors.grey,
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(10)),
-                                  image: DecorationImage(
-                                      image: NetworkImage(publicApiUrl +
-                                          itemData[index]['picture']),
-                                      fit: BoxFit.cover)),
-                            ),
+          height: hg, // Set height for the entire widget, including ListView
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                  padding: const EdgeInsets.only(left: 10, bottom: 5),
+                  child: SizedBox(
+                    height: 100,
+                    child: rowData(itemData, 0, true),
+                  )),
+              itemData.length > 1
+                  ? Column(children: [
+                      // Padding(
+                      //     padding: const EdgeInsets.only(left: 10),
+                      //     child: Divider(color: Colors.grey[300])),
                       SizedBox(
-                        width: 130,
-                        child: Text(
-                          "${itemData[index]['name']}",
-                          style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(HelperServices.formatCurrency(
-                          itemData[index]['price'].toDouble())),
-                    ]);
-              }
-            }),
-      );
+                        height: 50, // Height specifically for the ListView
+                        child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.only(left: 10, right: 20),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                            itemCount: itemData.length,
+                            itemBuilder: (context, index) {
+                              if (index + 1 == itemData.length) {
+                                return const SizedBox.shrink();
+                              } else {
+                                return rowData(itemData, index + 1, false);
+                              }
+                            }),
+                      )
+                    ])
+                  : const SizedBox.shrink()
+            ],
+          ));
     } else {
       return const SizedBox.shrink();
     }
+  }
+
+  Row rowData(List<dynamic> itemData, int index, bool isMain) {
+    double size = 50;
+    if (isMain) size = 100;
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      itemData[index]['picture'] == ""
+          ? Container(
+              height: size,
+              width: size,
+              decoration: BoxDecoration(
+                  color: Colors.grey, borderRadius: BorderRadius.circular(10)))
+          : Container(
+              height: size,
+              width: size,
+              decoration: BoxDecoration(
+                  color: Colors.grey,
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  image: DecorationImage(
+                      image: NetworkImage(
+                          publicApiUrl + itemData[index]['picture']),
+                      fit: BoxFit.cover)),
+            ),
+      isMain == true
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                    width: 160,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Text(
+                          "${itemData[index]['name']}",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            // fontWeight: FontWeight.bold
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ))),
+                Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Text(
+                      HelperServices.formatCurrency(
+                          itemData[index]['price'].toDouble()),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ))
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                    width: 80,
+                    child: Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Text(
+                          "${itemData[index]['name']}",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            // fontWeight: FontWeight.bold
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ))),
+              ],
+            )
+    ]);
   }
 
   Future<void> _fetchNearestLocations(
