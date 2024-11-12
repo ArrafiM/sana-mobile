@@ -9,6 +9,7 @@ import 'package:sana_mobile/screen/detail_point.dart';
 // import 'package:sana_mobile/screen/chat_screen.dart';
 import 'package:sana_mobile/screen/list_point.dart';
 import 'package:sana_mobile/services/location_services.dart';
+import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/logout.dart';
 
 class MapSana extends StatefulWidget {
@@ -31,6 +32,12 @@ class _MapSanaState extends State<MapSana> {
 
   List<dynamic> pinData = [];
 
+  bool isShow = false;
+  int indexShow = -1;
+  Map merchant = {};
+
+  String publicApiUrl = "";
+
   // Function to convert hex color to Flutter's Color object
   Color _hexToColor(String hex) {
     hex = hex.replaceAll('#', '');
@@ -46,6 +53,8 @@ class _MapSanaState extends State<MapSana> {
     setState(() {
       lat = widget.lat;
       long = widget.long;
+      String apiUrl = UserServices.apiUrl();
+      publicApiUrl = "$apiUrl/public/";
       // pinData = widget.pinData;
     });
 
@@ -113,65 +122,7 @@ class _MapSanaState extends State<MapSana> {
           alignPositionOnUpdate: _alignPositionOnUpdate,
         ),
         pinData.isNotEmpty
-            ? MarkerLayer(
-                markers: List.generate(pinData.length, (index) {
-                  return Marker(
-                      point: LatLng(
-                        pinData[index]['latitude'],
-                        pinData[index]['longitude'],
-                      ),
-                      width: 80,
-                      height: 50,
-                      rotate: true,
-                      child: GestureDetector(
-                        onTap: () {
-                          // print("Tap on: ${pinData[index]['title']}");
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    DetailPoint(point: pinData[index])),
-                          );
-                          // showModalSheet(context, pinData[index]['title']);
-                        },
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Positioned(
-                                top: 0,
-                                child: Container(
-                                    width: 80,
-                                    decoration: BoxDecoration(
-                                        color: Colors.blueGrey[100],
-                                        borderRadius:
-                                            BorderRadius.circular(15)),
-                                    child: Center(
-                                      child: Text(
-                                        pinData[index]['merchant']['name'],
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ))),
-                            Positioned(
-                              top: 5,
-                              bottom: 0,
-                              child: Icon(
-                                Icons.location_on,
-                                color: pinData[index]['merchant']['color'] == ""
-                                    ? _hexToColor('#8a2c2c')
-                                    : _hexToColor(
-                                        pinData[index]['merchant']['color']),
-                                size: 30,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ));
-                }),
-              )
+            ? markerPoint(context)
             : Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16.0),
@@ -223,34 +174,197 @@ class _MapSanaState extends State<MapSana> {
         ),
         Stack(children: <Widget>[
           // _searchField(),
-          Padding(
-            padding: const EdgeInsets.only(left: 20, bottom: 20),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: FloatingActionButton(
-                heroTag: "pointList",
-                onPressed: () {
-                  // print("klik list map");
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ListPoint(
-                        lat: lat,
-                        long: long,
-                      ),
-                    ),
-                  );
-                },
-                backgroundColor: Colors.grey[600],
-                child: const Icon(Icons.view_list, color: Colors.white),
-              ),
-            ),
-          ),
-
+          // pointList(context),
+          merchant.isNotEmpty
+              ? popUpPointTitle(context)
+              : const SizedBox.shrink(),
+          showHide(),
           refreshButton(),
         ])
       ],
     );
+  }
+
+  Align popUpPointTitle(BuildContext context) {
+    return Align(
+        alignment: Alignment.bottomLeft,
+        child: Padding(
+            padding: const EdgeInsets.only(left: 10, bottom: 10),
+            child: Container(
+              height: 60,
+              width: 250,
+              decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(15)),
+              child: Padding(
+                  padding: const EdgeInsets.only(left: 5),
+                  child: Row(
+                      // crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        merchant['picture'] == ""
+                            ? const Padding(
+                                padding: EdgeInsets.only(left: 10),
+                                child: CircleAvatar(
+                                    radius: 25,
+                                    child: Icon(Icons.storefront_outlined)))
+                            : Padding(
+                                padding: const EdgeInsets.only(left: 10),
+                                child: CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                      publicApiUrl + merchant['picture']),
+                                  radius: 25,
+                                )),
+                        Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: SizedBox(
+                              // decoration: const BoxDecoration(
+                              //     color: Colors.grey),
+                              width: 120,
+                              child: Text(
+                                merchant['name'],
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )),
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => DetailPoint(
+                                          point: pinData[indexShow])),
+                                );
+                              },
+                              child: const Icon(
+                                Icons.keyboard_arrow_up_outlined,
+                                color: Colors.black,
+                                size: 40,
+                              )),
+                        )
+                      ])),
+            )));
+  }
+
+  Padding pointList(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, bottom: 20),
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: FloatingActionButton(
+          heroTag: "pointList",
+          onPressed: () {
+            // print("klik list map");
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ListPoint(
+                  lat: lat,
+                  long: long,
+                ),
+              ),
+            );
+          },
+          backgroundColor: Colors.grey[600],
+          child: const Icon(Icons.view_list, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  MarkerLayer markerPoint(BuildContext context) {
+    return MarkerLayer(
+      markers: List.generate(pinData.length, (index) {
+        return Marker(
+            point: LatLng(
+              pinData[index]['latitude'],
+              pinData[index]['longitude'],
+            ),
+            width: 80,
+            height: 50,
+            rotate: true,
+            child: GestureDetector(
+              onTap: () {
+                popUpPoint(index);
+
+                // showModalSheet(context, pinData[index]['title']);
+              },
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  isShow
+                      ? merchantNamePoint(index)
+                      : indexShow == index
+                          ? merchantPopPoint(index)
+                          : const SizedBox.shrink(),
+                  Positioned(
+                    top: 5,
+                    bottom: 0,
+                    child: Icon(
+                      Icons.location_on,
+                      color: pinData[index]['merchant']['color'] == ""
+                          ? _hexToColor('#8a2c2c')
+                          : _hexToColor(pinData[index]['merchant']['color']),
+                      size: 30,
+                    ),
+                  ),
+                ],
+              ),
+            ));
+      }),
+    );
+  }
+
+  Positioned merchantNamePoint(int index) {
+    return Positioned(
+        top: 0,
+        child: Container(
+            width: 80,
+            decoration: BoxDecoration(
+                color: Colors.blueGrey[100],
+                borderRadius: BorderRadius.circular(15)),
+            child: Center(
+              child: Text(
+                pinData[index]['merchant']['name'],
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            )));
+  }
+
+  Positioned merchantPopPoint(int index) {
+    return Positioned(
+        top: 0,
+        child: Container(
+            width: 80,
+            // height: 50,
+            decoration: BoxDecoration(
+                color: Colors.blueGrey[100],
+                borderRadius: BorderRadius.circular(15)),
+            child: Center(
+              child: Text(
+                pinData[index]['merchant']['name'],
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            )));
   }
 
   Padding refreshButton() {
@@ -271,6 +385,50 @@ class _MapSanaState extends State<MapSana> {
         ),
       ),
     );
+  }
+
+  Padding showHide() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 180, right: 20),
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: FloatingActionButton(
+            heroTag: "showHide",
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+            onPressed: () {
+              print('hideshow');
+              updateShowHide();
+            },
+            backgroundColor: Colors.blue,
+            child: isShow
+                ? const Icon(Icons.visibility_off_outlined, color: Colors.white)
+                : const Icon(Icons.visibility_outlined, color: Colors.white)),
+      ),
+    );
+  }
+
+  void popUpPoint(index) {
+    setState(() {
+      if (index == indexShow) {
+        indexShow = -1;
+        merchant = {};
+      } else {
+        indexShow = index;
+        merchant = pinData[index]['merchant'];
+      }
+    });
+    print(merchant['name']);
+  }
+
+  void updateShowHide() {
+    setState(() {
+      if (isShow == false) {
+        isShow = true;
+      } else {
+        isShow = false;
+      }
+    });
   }
 
   Future<void> _getCurrentLocation() async {
@@ -301,8 +459,8 @@ class _MapSanaState extends State<MapSana> {
   }
 
   Future<void> _fetchNearestLocations(lat, long) async {
-    final response =
-        await LocationServices.fetchNearestLocations(lat, long, 2000, 1, 1000,null,null);
+    final response = await LocationServices.fetchNearestLocations(
+        lat, long, 2000, 1, 1000, null, null);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");
