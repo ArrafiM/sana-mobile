@@ -107,7 +107,7 @@ class MerchantServices {
   }
 
   static Future createMerchandise(String name, String desc, File? picture,
-      String price, String merchantId) async {
+      String price, String merchantId, List tagdata) async {
     String? token = await UserServices.checkToken();
     String apiurl = UserServices.apiUrl();
     var url = Uri.parse('$apiurl/api/merchandise');
@@ -117,6 +117,9 @@ class MerchantServices {
       ..fields['description'] = desc
       ..fields['price'] = price
       ..fields['merchant_id'] = merchantId;
+    if (tagdata.isNotEmpty) {
+      request.fields['tag'] = tagdata.toString();
+    }
     if (picture != null) {
       request.files.add(
         await http.MultipartFile.fromPath(
@@ -137,7 +140,7 @@ class MerchantServices {
   }
 
   static Future putMerchandise(int id, String name, String desc, File? picture,
-      String price, String merchantId) async {
+      String price, String merchantId, List tagdata) async {
     String? token = await UserServices.checkToken();
     String apiurl = UserServices.apiUrl();
     var url = Uri.parse('$apiurl/api/merchandise/$id');
@@ -147,6 +150,9 @@ class MerchantServices {
       ..fields['description'] = desc
       ..fields['price'] = price
       ..fields['merchant_id'] = merchantId;
+    if (tagdata.isNotEmpty) {
+      request.fields['tag'] = tagdata.toString();
+    }
     if (picture != null) {
       request.files.add(
         await http.MultipartFile.fromPath(
@@ -200,5 +206,24 @@ class MerchantServices {
       print('Merchant image uploaded!: true');
       return true;
     }
+  }
+
+  static Future deleteMerchandise(id) async {
+    print("hit api delete merchant id : $id");
+    String apiUrl = UserServices.apiUrl();
+    var url = '$apiUrl/api/merchandise/$id';
+    String? token = await UserServices.checkToken();
+    final uri = Uri.parse(url);
+    final response = await http.delete(uri, headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    }).timeout(const Duration(seconds: 30));
+    if (response.statusCode == 200) {
+      return true;
+    } else if (response.statusCode == 401) {
+      return 401;
+    }
+    return null;
   }
 }

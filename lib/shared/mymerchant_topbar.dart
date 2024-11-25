@@ -129,6 +129,7 @@ class _MyMerchantTopbarState extends State<MyMerchantTopbar> {
                                       pathImage: '',
                                       price: '',
                                       merchandiseId: 0,
+                                      tag: const [],
                                       merchantId:
                                           widget.merchant['ID'].toString(),
                                     )),

@@ -98,6 +98,41 @@ class _MerchantScreenState extends State<MerchantScreen> {
     }
   }
 
+  deleteConfirm(id, name) {
+    showDialog(
+      context: context,
+      // barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Item!'),
+          content: Text('Are you sure to delete item [$name]?'),
+          backgroundColor: Colors.white,
+          actions: [
+            TextButton(
+              child: const Text(
+                'No',
+                style: TextStyle(color: Colors.blue),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: const Text(
+                'Yes',
+                style: TextStyle(color: Colors.blue),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                deleteMerchindise(id, name);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _messageSubscription.cancel(); // Cancel the subscription
@@ -367,23 +402,41 @@ class _MerchantScreenState extends State<MerchantScreen> {
               ),
               Padding(
                   padding: const EdgeInsets.only(right: 5),
-                  child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => MerchandiseUpsert(
-                                  name: merchandise[index]['name'],
-                                  desc: merchandise[index]['description'],
-                                  pathImage: merchandise[index]['picture'],
-                                  price: merchandise[index]['price'].toString(),
-                                  merchandiseId: merchandise[index]['ID'],
-                                  merchantId: merchandise[index]['merchant_id']
-                                      .toString())),
-                        );
-                      },
-                      child: const Icon(Icons.edit_note_outlined,
-                          color: Colors.green, size: 35)))
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => MerchandiseUpsert(
+                                      name: merchandise[index]['name'],
+                                      desc: merchandise[index]['description'],
+                                      pathImage: merchandise[index]['picture'],
+                                      price: merchandise[index]['price']
+                                          .toString(),
+                                      merchandiseId: merchandise[index]['ID'],
+                                      tag: merchandise[index]['tag'] ?? [],
+                                      merchantId: merchandise[index]
+                                              ['merchant_id']
+                                          .toString())),
+                            );
+                          },
+                          child: const Icon(Icons.edit_note_outlined,
+                              color: Colors.green, size: 35)),
+                      GestureDetector(
+                          onTap: () {
+                            print("delete");
+                            deleteConfirm(merchandise[index]['ID'],
+                                merchandise[index]['name']);
+                          },
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.red,
+                          ))
+                    ],
+                  ))
             ],
           ));
     }
@@ -396,6 +449,31 @@ class _MerchantScreenState extends State<MerchantScreen> {
       decimalDigits: 0, // Jumlah digit desimal
     );
     return formatter.format(amount);
+  }
+
+  void _showAlertDialog(String message, String title) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          backgroundColor: Colors.white,
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.blue),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> fetchMyMerchant() async {
@@ -425,5 +503,18 @@ class _MerchantScreenState extends State<MerchantScreen> {
     setState(() {
       isLoad = false;
     });
+  }
+
+  Future<void> deleteMerchindise(id, name) async {
+    final response = await MerchantServices.deleteMerchandise(id);
+    if (response != null) {
+      if (response == 401) {
+        print("Unauthorized 401");
+      } else {
+        _showAlertDialog("Item [$name] deleted!", "Delete Item");
+      }
+    } else {
+      const SnackBar(content: Text("Something went Wrong"));
+    }
   }
 }

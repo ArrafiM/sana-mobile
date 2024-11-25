@@ -7,6 +7,7 @@ import 'package:sana_mobile/services/user_services.dart';
 
 class MerchandiseUpsert extends StatefulWidget {
   final String name, desc, pathImage, price, merchantId;
+  final List tag;
   final int merchandiseId;
   const MerchandiseUpsert(
       {Key? key,
@@ -15,6 +16,7 @@ class MerchandiseUpsert extends StatefulWidget {
       required this.merchantId,
       required this.pathImage,
       required this.price,
+      required this.tag,
       required this.merchandiseId})
       : super(key: key);
 
@@ -26,11 +28,14 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _tagController = TextEditingController();
   String publicApiUrl = "";
   File? _image;
   String pathImage = '';
   String merchantId = '';
   int merchandiseId = 0;
+  bool addTag = false;
+  List tagData = [];
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(ImageSource source) async {
@@ -79,6 +84,9 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
       }
       if (widget.price != '') {
         _priceController.text = widget.price;
+      }
+      if (widget.tag.isNotEmpty) {
+        tagData = widget.tag;
       }
       merchantId = widget.merchantId;
       merchandiseId = widget.merchandiseId;
@@ -147,6 +155,24 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
     } else {
       _putMerchandise(context, name, description, price);
     }
+  }
+
+  void _showAddTag(data) {
+    String tag = _tagController.text.trim();
+    if (data == false) {
+      // if (tag.isEmpty) {
+      //   _showAlertDialog(
+      //       'Required fields tag, cannot be empty.', true, 'Alert');
+      //   return;
+      // }
+      _tagController.clear();
+    }
+    setState(() {
+      addTag = data;
+      if (tag.isNotEmpty) {
+        tagData.add(tag);
+      }
+    });
   }
 
   @override
@@ -268,10 +294,15 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
           const SizedBox(height: 10),
 
           Column(
-            // mainAxisAlignment: MainAxisAlignment.start,
+            // mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Item photo'),
+              tagData.isEmpty
+                  ? const Text('Item photo:')
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [Text('Item photo:'), Text(':Tag data')],
+                    ),
               Row(
                 children: [
                   (pathImage != '' && _image == null)
@@ -330,9 +361,88 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
                         child: const Icon(Icons.photo_library_outlined),
                       ),
                     ],
-                  )
+                  ),
+                  const SizedBox(width: 5),
+                  SizedBox(
+                      height: 120, // Atur tinggi kotak scroll
+                      // decoration: BoxDecoration(
+                      //     border: Border.all(color: Colors.grey)),
+                      width: 150,
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 15),
+                          child: Wrap(
+                            spacing: 2.0, // Jarak horizontal antar kotak
+                            runSpacing: 2.0, // Jarak vertikal antar kotak
+                            children: tagData
+                                .map((tag) => _buildTagItem(tag))
+                                .toList(),
+                          ),
+                        ),
+                      )),
                 ],
               )
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tag',
+                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+              ),
+              addTag == false
+                  ? ElevatedButton(
+                      onPressed: () {
+                        print("show tag");
+                        _showAddTag(true);
+                      },
+                      child: const Icon(Icons.add))
+                  : const SizedBox.shrink(),
+              addTag == true
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        SizedBox(
+                          height: 50,
+                          width: 250,
+                          child: TextField(
+                            controller: _tagController,
+                            maxLines: null,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.black), // Warna border
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors
+                                        .blue), // Warna border saat field fokus
+                              ),
+                              hintText: 'Enter Tag',
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 10.0,
+                                  horizontal:
+                                      15.0), // Mengatur padding dalam TextField
+                            ),
+                          ),
+                        ),
+                        ElevatedButton(
+                            onPressed: () {
+                              print("new tag");
+                              _showAddTag(false);
+                            },
+                            child: const Column(
+                              children: [
+                                Icon(Icons.check),
+                                // Text("Add")
+                              ],
+                            )),
+                      ],
+                    )
+                  : const SizedBox.shrink()
             ],
           ),
 
@@ -352,6 +462,22 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTagItem(String tag) {
+    return Chip(
+      label: Text(tag),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12), // Membuat sudut melengkung
+      ),
+      backgroundColor: Colors.blue.shade100,
+      deleteIcon: const Icon(Icons.close, color: Colors.red),
+      onDeleted: () {
+        setState(() {
+          tagData.remove(tag);
+        });
+      },
     );
   }
 
@@ -393,7 +519,7 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
   Future<void> _postMerchandise(context, name, desc, price) async {
     // Contoh menyimpan token setelah login berhasil
     bool response = await MerchantServices.createMerchandise(
-        name, desc, _image, price, merchantId);
+        name, desc, _image, price, merchantId, tagData);
     print("merchandise create: $response");
     if (!response) {
       _showAlertDialog("Failed create merchandise", true, 'Alert');
@@ -405,7 +531,7 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
   Future<void> _putMerchandise(context, name, desc, price) async {
     // Contoh menyimpan token setelah login berhasil
     bool response = await MerchantServices.putMerchandise(
-        merchandiseId, name, desc, _image, price, merchantId);
+        merchandiseId, name, desc, _image, price, merchantId, tagData);
     print("merchant updated: $response");
     if (!response) {
       _showAlertDialog("Failed update merchant", true, 'Alert');

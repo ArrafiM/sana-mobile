@@ -16,6 +16,12 @@ class _MainNavigationState extends State<MainNavigation> {
   static const TextStyle optionStyle =
       TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
 
+  final List<Widget> _pages = [
+    const ExploreScreen(),
+    const SanaScreen(),
+    const MerchantScreen()
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -60,11 +66,15 @@ class _MainNavigationState extends State<MainNavigation> {
         selectedIconTheme: const IconThemeData(size: 25),
         onTap: _onItemTapped,
       ),
-      body: <Widget>[
-        const ExploreScreen(),
-        const SanaScreen(),
-        const MerchantScreen()
-      ][_selectedIndex],
+      // body: <Widget>[
+      //   const ExploreScreen(),
+      //   const SanaScreen(),
+      //   const MerchantScreen()
+      // ][_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
     );
   }
 
