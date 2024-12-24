@@ -142,7 +142,9 @@ class _ChatroomScreenState extends State<ChatroomScreen> {
 
   @override
   void dispose() {
-    _messageSubscription.cancel(); // Cancel the subscription
+    if (roomId != 0) {
+      _messageSubscription.cancel();
+    }
     _scrollController
         .dispose(); // Jangan lupa dispose controller saat screen ditutup
     super.dispose();

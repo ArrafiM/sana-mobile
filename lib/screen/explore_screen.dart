@@ -128,9 +128,24 @@ class _ExploreScreenState extends State<ExploreScreen> {
         body: RefreshIndicator(
           onRefresh: _refreshData,
           child: merchantData.isEmpty
-              ? const Padding(
-                  padding: EdgeInsets.only(left: 10),
-                  child: Text("Sorry, no merchant found in your location"))
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Sorry, no merchant found in your location"),
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () {
+                          _refreshData();
+                        },
+                        child: const Text(
+                          "Refresh",
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      )
+                    ],
+                  ),
+                )
               : ListView.builder(
                   controller: _scrollController,
                   itemCount: merchantData.length,
@@ -268,6 +283,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Row rowData(List<dynamic> itemData, int index, bool isMain) {
     double size = 50;
     if (isMain) size = 100;
+    List<dynamic> items = itemData[index]["tag"] ?? [];
+    List<String> stringItems = items.map((item) => item.toString()).toList();
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       itemData[index]['picture'] == ""
           ? Container(
@@ -289,7 +306,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       isMain == true
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 SizedBox(
                     width: 160,
@@ -304,6 +321,34 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ))),
+                Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: SizedBox(
+                      height: 60, // Atur tinggi kotak scroll
+                      // decoration:
+                      //     BoxDecoration(border: Border.all(color: Colors.grey)),
+                      width: MediaQuery.of(context).size.width - 140,
+                      child: SingleChildScrollView(
+                        child: Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Wrap(
+                              spacing: 5.0, // Jarak horizontal antar kotak
+                              runSpacing: 2.0, // Jarak vertikal antar kotak
+                              children: stringItems
+                                  .map<Widget>((tag) => Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                          border: Border.all(
+                                              color: Colors.blueAccent),
+                                        ),
+                                        child: Text(
+                                            tag), // Gunakan tag untuk menampilkan teks
+                                      ))
+                                  .toList(), // Konversi ke List<Widget>
+                            )),
+                      ),
+                    )),
                 Padding(
                     padding: const EdgeInsets.only(left: 10),
                     child: Text(

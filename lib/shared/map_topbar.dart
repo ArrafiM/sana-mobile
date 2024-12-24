@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/screen/chat_screen.dart';
+import 'package:sana_mobile/screen/profile_screen.dart';
 import 'package:sana_mobile/services/chat_services.dart';
 import 'package:sana_mobile/services/socket_services.dart';
+import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/logout.dart';
 
 class MapTopbar extends StatefulWidget implements PreferredSizeWidget {
@@ -18,16 +20,22 @@ class MapTopbar extends StatefulWidget implements PreferredSizeWidget {
 class _MapTopbarState extends State<MapTopbar> {
   int unreadMessage = 0;
   late StreamSubscription<String> _messageSubscription;
+  Map userData = {};
 
   @override
   void initState() {
     super.initState();
     _websocketConnect();
     fetchChatroom();
+    // fetchuserData();
   }
 
   Future<void> _websocketConnect() async {
+    // String? myId = await UserServices.checkMyId();
     _messageSubscription = SocketService().messageStream.listen((message) {
+      // if (message == "myMerchant$myId") {
+      //   fetchuserData();
+      // }
       print("socket msg: $message");
       fetchChatroom();
     });
@@ -35,7 +43,7 @@ class _MapTopbarState extends State<MapTopbar> {
 
   @override
   void dispose() {
-    _messageSubscription.cancel(); // Cancel the subscription
+    _messageSubscription.cancel();
     super.dispose();
   }
 
@@ -85,7 +93,13 @@ class _MapTopbarState extends State<MapTopbar> {
           icon: const Icon(Icons.more_horiz),
           onPressed: () {
             // Aksi saat tombol notifications ditekan
-            showModalSheet(context, null);
+            // showModalSheet(context, null);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(
+                      )),
+            );
           },
         ),
       ],
@@ -118,12 +132,6 @@ class _MapTopbarState extends State<MapTopbar> {
                 child: const Text('Close BottomSheet'),
                 onPressed: () => Navigator.pop(context),
               ),
-              ElevatedButton(
-                child: const Text('Logout'),
-                onPressed: () {
-                  showLogoutConfirmDialog(context);
-                },
-              ),
             ],
           ),
         );
@@ -141,6 +149,17 @@ class _MapTopbarState extends State<MapTopbar> {
       if (response == 401) {
         showLogoutDialog(context);
       }
+      // const SnackBar(content: Text("Something went Wrong"));
+    }
+  }
+
+  Future<void> fetchuserData() async {
+    final response = await UserServices.fetchUsers();
+    if (response != null) {
+      setState(() {
+        userData = response['data'];
+      });
+    } else {
       // const SnackBar(content: Text("Something went Wrong"));
     }
   }

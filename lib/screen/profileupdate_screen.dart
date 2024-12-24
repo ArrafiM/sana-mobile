@@ -1,33 +1,33 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sana_mobile/services/merchant_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
 
-class MerchantCreate extends StatefulWidget {
-  final String name, desc, pathImage;
-  final int merchantId;
-  const MerchantCreate(
+class ProfileupdateScreen extends StatefulWidget {
+  final String name, pathImage;
+  final int userId;
+  const ProfileupdateScreen(
       {Key? key,
       required this.name,
-      required this.desc,
-      required this.merchantId,
+      required this.userId,
       required this.pathImage})
       : super(key: key);
 
   @override
-  State<MerchantCreate> createState() => _MerchantCreateState();
+  State<ProfileupdateScreen> createState() => _ProfileupdateScreenState();
 }
 
-class _MerchantCreateState extends State<MerchantCreate> {
+class _ProfileupdateScreenState extends State<ProfileupdateScreen> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
   String publicApiUrl = "";
   File? _image;
   String pathImage = '';
-  int merchantId = 0;
+  int userId = 0;
   final ImagePicker _picker = ImagePicker();
+  String? myId = '';
 
   Future<void> _pickImage(ImageSource source) async {
     if (source == ImageSource.camera) {
@@ -40,14 +40,6 @@ class _MerchantCreateState extends State<MerchantCreate> {
         return;
       }
     } else if (source == ImageSource.gallery) {
-      // PermissionStatus galleryStatus = await Permission.photos.request();
-      // if (!galleryStatus.isGranted) {
-      //   // Jika izin galeri tidak diberikan
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text('Izin akses galeri ditolak')),
-      //   );
-      //   return;
-      // }
       PermissionStatus storageStatus = await Permission.storage.request();
       if (!storageStatus.isGranted) {
         // Jika izin galeri tidak diberikan
@@ -75,16 +67,16 @@ class _MerchantCreateState extends State<MerchantCreate> {
       if (widget.name != '') {
         _nameController.text = widget.name;
       }
-      if (widget.desc != '') {
-        _descriptionController.text = widget.desc;
-      }
+
       if (widget.pathImage != '') {
         pathImage = widget.pathImage;
       }
-      merchantId = widget.merchantId;
+      userId = widget.userId;
       publicApiUrl = "$apiUrl/public/";
     });
   }
+
+  
 
   @override
   void dispose() {
@@ -122,31 +114,25 @@ class _MerchantCreateState extends State<MerchantCreate> {
     );
   }
 
-  void _createMerchant() {
+  void _createProfile() {
     String name = _nameController.text.trim();
-    String description = _descriptionController.text.trim();
 
     // Check if fields are empty
-    if (name.isEmpty || description.isEmpty) {
+    if (name.isEmpty) {
       _showAlertDialog('Required fields cannot be empty.', true, 'Alert');
       return;
     }
 
-    if (_image == null && merchantId == 0) {
-      _showAlertDialog('Please select merchant photo', true, 'Alert');
+    if (_image == null && userId == 0) {
+      _showAlertDialog('Please select profile photo', true, 'Alert');
       return;
     }
 
     // If all validations pass, proceed with login logic
     print('name: $name');
 
-    // Add your login logic here (e.g., API call)
-    if (merchantId == 0) {
-      _postMerchant(context, name, description, _image);
-    } else {
-      print("update merchant id: $merchantId");
-      _putMerchant(context, name, description, _image);
-    }
+    print("update profile id: $userId");
+    _putprofile(context, name, _image);
   }
 
   @override
@@ -156,7 +142,7 @@ class _MerchantCreateState extends State<MerchantCreate> {
           title: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              merchantId != 0
+              userId != 0
                   ? const Text(
                       'Update',
                       style: TextStyle(fontSize: 12),
@@ -166,7 +152,7 @@ class _MerchantCreateState extends State<MerchantCreate> {
                       style: TextStyle(fontSize: 12),
                     ),
               const Text(
-                'Merchant',
+                'profile',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ],
@@ -176,11 +162,11 @@ class _MerchantCreateState extends State<MerchantCreate> {
         body: Padding(
             padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
             child: SingleChildScrollView(
-              child: merchantCreateForm(),
+              child: ProfileupdateScreenForm(),
             )));
   }
 
-  Container merchantCreateForm() {
+  Container ProfileupdateScreenForm() {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(maxWidth: 400),
@@ -189,10 +175,8 @@ class _MerchantCreateState extends State<MerchantCreate> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Column(
-            // mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text('Merchant photo'),
               Column(
                 children: [
                   (pathImage != '' && _image == null)
@@ -220,12 +204,8 @@ class _MerchantCreateState extends State<MerchantCreate> {
                                   width: 1.0, // Ketebalan border
                                 ),
                               ),
-                              child: ClipOval(
-                                  child: Icon(
-                                Icons.store,
-                                size: 150,
-                                color: Colors.grey[500],
-                              )),
+                              child: const ClipOval(
+                                  child: Icon(Icons.person_outline, size: 150)),
                             ),
                   const SizedBox(width: 20),
                   Row(
@@ -237,39 +217,23 @@ class _MerchantCreateState extends State<MerchantCreate> {
                               const Size(120, 40), // Lebar 200, Tinggi 50
                         ),
                         onPressed: () => _pickImage(ImageSource.camera),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.add_a_photo_outlined),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text("Photo")
-                          ],
-                        ),
+                        child: const Icon(Icons.add_a_photo_outlined),
                       ),
                       const SizedBox(width: 20),
                       ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            minimumSize:
-                                const Size(120, 40), // Lebar 200, Tinggi 50
-                          ),
-                          onPressed: () => _pickImage(ImageSource.gallery),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.photo_library_outlined),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Text("Album")
-                            ],
-                          )),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize:
+                              const Size(120, 40), // Lebar 200, Tinggi 50
+                        ),
+                        onPressed: () => _pickImage(ImageSource.gallery),
+                        child: const Icon(Icons.photo_library_outlined),
+                      ),
                     ],
                   ),
                 ],
               )
             ],
           ),
-
           const SizedBox(height: 20),
           // name field
           Column(
@@ -297,41 +261,14 @@ class _MerchantCreateState extends State<MerchantCreate> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
 
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Description',
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              ),
-              TextField(
-                controller: _descriptionController,
-                maxLines: null,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black), // Warna border
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Colors.blue), // Warna border saat field fokus
-                  ),
-                  hintText: 'Enter Description',
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: 10.0,
-                      horizontal: 15.0), // Mengatur padding dalam TextField
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 20),
 
           // Save button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _createMerchant,
+              onPressed: _createProfile,
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue, // Text color
@@ -344,63 +281,15 @@ class _MerchantCreateState extends State<MerchantCreate> {
     );
   }
 
-  showMessageDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      // barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Gagal login!',
-            // style: TextStyle(color: Colors.white), // Mengatur warna teks judul
-          ),
-          content: Text(message),
-          backgroundColor: Colors.white,
-          actions: [
-            TextButton(
-              child: const Text(
-                'oke',
-                style:
-                    TextStyle(color: Colors.blue), // Mengatur warna teks tombol
-              ),
-              onPressed: () {
-                print("oke");
-                Navigator.pop(context);
-                // Navigator.pushNamedAndRemoveUntil(
-                //   context,
-                //   '/login', // Replace '/login' with the route name for your login screen
-                //   (route) => false,
-                // );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _postMerchant(context, name, password, File? image) async {
+  Future<void> _putprofile(context, name, File? image) async {
     // Contoh menyimpan token setelah login berhasil
-    bool response =
-        await MerchantServices.createMerchant(name, password, image);
-    print("merchant create: $response");
-    if (!response) {
-      print("login error");
-      _showAlertDialog("Failed create merchant", true, 'Alert');
-    } else {
-      _showAlertDialog("Merchant [$name] created!", false, 'Successfully');
-    }
-  }
-
-  Future<void> _putMerchant(context, name, password, File? image) async {
-    // Contoh menyimpan token setelah login berhasil
-    bool response =
-        await MerchantServices.putMerchant(merchantId, name, password, image);
+    bool response = await UserServices.putUser(name, image);
     print("merchant updated: $response");
     if (!response) {
-      _showAlertDialog("Failed update merchant", true, 'Alert');
+      _showAlertDialog("Failed update user", true, 'Alert');
     } else {
-      _showAlertDialog("Merchant [$name] updated!", false, 'Successfully');
+      _showAlertDialog("user [$name] updated!", false, 'Successfully');
     }
+    ;
   }
 }

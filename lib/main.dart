@@ -77,11 +77,11 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          colorScheme: ColorScheme.light(
+          colorScheme: const ColorScheme.light(
         primary: Colors.blue,
         secondary: Colors.green,
         // background: Colors.white,
-        surface: Colors.grey[200]!,
+        surface: Colors.white,
         error: Colors.red,
       )),
       // theme: ThemeData.light(

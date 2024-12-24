@@ -1,25 +1,29 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:sana_mobile/services/helper_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:path/path.dart' as path;
 
 class UserServices {
   static Future<Map?> fetchUsers() async {
-    const url = 'http://192.168.18.32:3030/users/me';
-    const token =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZDU3OWE2ZGQ5NGIwMDUxZDhjNGNjMyIsImVtYWlsIjoic2FuYXlhQG1haWwuY29tIiwiaWF0IjoxNzA4NTgzOTcxfQ.PM1LjxEZsd6GTQLFPLI_e_wJJ4hD8EsZzxe_yMw3IRY';
-    final uri = Uri.parse(url);
+    String apiurl = apiUrl();
+    String? token = await checkToken();
+    final uri = Uri.parse('$apiurl/api/users/me');
     final response = await http.get(uri, headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',
     });
+
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
-      final result = json['data'] as List;
-      int totalList = (result.length / 3).round();
-      Map data = {'data': result, 'total_list': totalList};
-      return data;
+      // final result = json['data'] as List;
+      // int totalList = (result.length / 3).round();
+      // Map data = {'data': result, 'total_list': totalList};
+      return json;
     } else {
       return null;
     }
@@ -64,6 +68,36 @@ class UserServices {
     } else {
       print('register success!');
       return json;
+    }
+  }
+
+  static Future putUser(String name, File? picture) async {
+    String? token = await UserServices.checkToken();
+    String apiurl = apiUrl();
+    var url = Uri.parse('$apiurl/api/users/update');
+    var request = http.MultipartRequest('PUT', url)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['name'] = name;
+    if (picture != null) {
+      Uint8List? image = await HelperServices.compressFile(picture);
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'picture', // Nama field sesuai API yang menerima file
+          image!.toList(),
+          filename: path.basename(picture.path), // Nama file yang akan diupload
+          // contentType: MediaType('image', 'jpeg'), // Ubah sesuai tipe file
+        ),
+      );
+    }
+
+    var response = await request.send();
+    // final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan: ${response.statusCode}');
+      return false;
+    } else {
+      print('User updated!: $name');
+      return true;
     }
   }
 

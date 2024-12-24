@@ -5,6 +5,7 @@ import 'package:sana_mobile/services/chat_services.dart';
 import 'package:sana_mobile/services/helper_services.dart';
 import 'package:sana_mobile/services/merchant_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
+import 'package:sana_mobile/shared/detail_item.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class DetailPoint extends StatefulWidget {
@@ -262,6 +263,8 @@ class _DetailPointState extends State<DetailPoint> {
         ),
       );
     } else {
+      List<dynamic> items = merchandise[index]["tag"] ?? [];
+      List<String> stringItems = items.map((item) => item.toString()).toList();
       return Container(
           height: 120,
           width: MediaQuery.of(context).size.width,
@@ -273,9 +276,8 @@ class _DetailPointState extends State<DetailPoint> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
-                  onDoubleTap: () {
-                    print(
-                        "like this double tap, ${merchandise[index]['name']}, ${index + 1}");
+                  onTap: () {
+                    showDetailItem(context, merchandise[index]);
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(5),
@@ -310,16 +312,32 @@ class _DetailPointState extends State<DetailPoint> {
                           ),
                         ),
                         SizedBox(
-                            height: 45, // Atur tinggi kotak scroll
-                            // decoration: BoxDecoration(
-                            //     border: Border.all(color: Colors.grey)),
-                            width: MediaQuery.of(context).size.width - 160,
-                            child: SingleChildScrollView(
-                              child: Text(
-                                merchandise[index]['description'],
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            )),
+                          height: 45, // Atur tinggi kotak scroll
+                          // decoration: BoxDecoration(
+                          //     border: Border.all(color: Colors.grey)),
+                          width: MediaQuery.of(context).size.width - 160,
+                          child: SingleChildScrollView(
+                              child: Padding(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  child: Wrap(
+                                    spacing:
+                                        5.0, // Jarak horizontal antar kotak
+                                    runSpacing:
+                                        2.0, // Jarak vertikal antar kotak
+                                    children: stringItems
+                                        .map<Widget>((tag) => Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                border: Border.all(
+                                                    color: Colors.blueAccent),
+                                              ),
+                                              child: Text(
+                                                  tag), // Gunakan tag untuk menampilkan teks
+                                            ))
+                                        .toList(), // Konversi ke List<Widget>
+                                  ))),
+                        ),
                       ],
                     ),
                     Text(

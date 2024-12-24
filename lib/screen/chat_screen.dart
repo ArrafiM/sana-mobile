@@ -123,7 +123,7 @@ class _ChatScreenState extends State<ChatScreen> {
               height: 100,
               padding: const EdgeInsets.only(left: 5),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Row(
@@ -145,26 +145,30 @@ class _ChatScreenState extends State<ChatScreen> {
                       const SizedBox(
                         width: 10,
                       ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            chatrooms[index]['receiverdata']['name'],
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                                fontSize: 16),
-                          ),
-                          Text(
-                            chatrooms[index]['message'],
-                            style: const TextStyle(
-                                color: Color(0xff7B6F72),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w400),
-                          ),
-                        ],
-                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width - 180,
+                        // decoration: BoxDecoration(color: Colors.blue),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              chatrooms[index]['receiverdata']['name'],
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                  fontSize: 16),
+                            ),
+                            Text(chatrooms[index]['message'],
+                                style: const TextStyle(
+                                    color: Color(0xff7B6F72),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w400),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
+                      )
                     ],
                   ),
                   Column(

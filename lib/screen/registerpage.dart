@@ -117,7 +117,7 @@ class _RegisterFormState extends State<RegisterForm> {
   Container registerForm() {
     return Container(
       width: double.infinity,
-      constraints: BoxConstraints(maxWidth: 400),
+      constraints: const BoxConstraints(maxWidth: 400),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,

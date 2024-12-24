@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:sana_mobile/screen/landingimage_merchant.dart';
 import 'package:sana_mobile/screen/merchandise_upsert.dart';
 import 'package:sana_mobile/screen/merchant_create.dart';
 import 'package:sana_mobile/services/merchant_services.dart';
 import 'package:sana_mobile/services/socket_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
-import 'package:sana_mobile/shared/mymerchant_topbar.dart';
+import 'package:sana_mobile/shared/detail_item.dart';
+// import 'package:sana_mobile/shared/mymerchant_topbar.dart';
 import 'package:sana_mobile/shared/simple_topbar.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -31,12 +33,12 @@ class _MerchantScreenState extends State<MerchantScreen> {
   late ScrollController _scrollController;
   Color backgroundColorLanding = Colors.white;
   String publicApiUrl = "";
-  bool isLoad = true;
   Map<String, dynamic> merchant = {};
   List landingImage = [];
+  bool isLoad = true;
   String? myId = '';
 
-  List merchandise = ['0'];
+  List merchandise = [];
 
   @override
   void initState() {
@@ -144,65 +146,101 @@ class _MerchantScreenState extends State<MerchantScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: merchant['name'] != ''
-            ? MyMerchantTopbar(merchant: merchant)
+            // ? MyMerchantTopbar(merchant: merchant)
+            ? merchantAppBar(context)
             : const SimpleTopBar(),
         body: _myMerchantData());
   }
 
+  AppBar merchantAppBar(BuildContext context) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      title: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Detail',
+            style: TextStyle(fontSize: 12),
+          ),
+          Text(
+            'Merchant',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+      centerTitle: true,
+      actions: <Widget>[
+        merchant.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () {
+                  // Aksi saat tombol notifications ditekan
+                  showModalSheet(context, null);
+                },
+              )
+            : const SizedBox.shrink()
+      ],
+    );
+  }
+
   RefreshIndicator _myMerchantData() {
     return RefreshIndicator(
-        onRefresh: _refresh,
-        child: isLoad
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : merchant.isEmpty
-                ? Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                        const Text("Create your merchant"),
-                        ElevatedButton(
-                            onPressed: () {
-                              print('Create merchant page');
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const MerchantCreate(
-                                          name: '',
-                                          desc: '',
-                                          pathImage: '',
-                                          merchantId: 0,
-                                        )),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
+      onRefresh: _refresh,
+      child: isLoad
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : merchant.isEmpty
+              ? Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                      const Text("Create your merchant"),
+                      ElevatedButton(
+                          onPressed: () {
+                            print('Create merchant page');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const MerchantCreate(
+                                        name: '',
+                                        desc: '',
+                                        pathImage: '',
+                                        merchantId: 0,
+                                      )),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
                               backgroundColor: Colors.blue, // Text color
-                            ),
-                            child: const Icon(Icons.add_business_outlined))
-                      ]))
-                : ListView.builder(
-                    itemCount: merchandise.length,
-                    padding: const EdgeInsets.only(top: 0),
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return Column(children: [
-                          landingImage.isEmpty
-                              ? const SizedBox.shrink()
-                              : merchantHeader(),
-                          landingImage.isEmpty
-                              ? const SizedBox.shrink()
-                              : sliderIndicator(),
-                          merchantDetail(context),
-                          merchandiseTitle(),
-                          _merchandiseList(index),
-                        ]);
-                      } else {
-                        return _merchandiseList(index);
-                      }
-                    },
-                  ));
+                              minimumSize: const Size(120, 40)),
+                          child: const Icon(
+                            Icons.add_business_outlined,
+                            color: Colors.white,
+                          ))
+                    ]))
+              : ListView.builder(
+                  itemCount: merchandise.length,
+                  padding: const EdgeInsets.only(top: 0),
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return Column(children: [
+                        landingImage.isEmpty
+                            ? const SizedBox.shrink()
+                            : merchantHeader(),
+                        landingImage.isEmpty
+                            ? const SizedBox.shrink()
+                            : sliderIndicator(),
+                        merchantDetail(context),
+                        merchandiseTitle(),
+                        _merchandiseList(index),
+                      ]);
+                    } else {
+                      return _merchandiseList(index);
+                    }
+                  },
+                ),
+    );
   }
 
   Container sliderIndicator() {
@@ -328,6 +366,8 @@ class _MerchantScreenState extends State<MerchantScreen> {
         ),
       );
     } else {
+      List<dynamic> items = merchandise[index]['tag'] ?? [];
+      List<String> stringItems = items.map((item) => item.toString()).toList();
       return Container(
           height: 120,
           width: MediaQuery.of(context).size.width,
@@ -339,6 +379,10 @@ class _MerchantScreenState extends State<MerchantScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
+                  onTap: () {
+                    // showModalSheet(context, null);
+                    showDetailItem(context, merchandise[index]);
+                  },
                   onDoubleTap: () {
                     print(
                         "like this double tap, ${merchandise[index]['name']}, ${index + 1}");
@@ -378,16 +422,32 @@ class _MerchantScreenState extends State<MerchantScreen> {
                           ),
                         ),
                         SizedBox(
-                            height: 45, // Atur tinggi kotak scroll
-                            // decoration: BoxDecoration(
-                            //     border: Border.all(color: Colors.grey)),
-                            width: MediaQuery.of(context).size.width - 160,
-                            child: SingleChildScrollView(
-                              child: Text(
-                                merchandise[index]['description'],
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            )),
+                          height: 45, // Atur tinggi kotak scroll
+                          // decoration: BoxDecoration(
+                          //     border: Border.all(color: Colors.grey)),
+                          width: MediaQuery.of(context).size.width - 160,
+                          child: SingleChildScrollView(
+                              child: Padding(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  child: Wrap(
+                                    spacing:
+                                        5.0, // Jarak horizontal antar kotak
+                                    runSpacing:
+                                        2.0, // Jarak vertikal antar kotak
+                                    children: stringItems
+                                        .map<Widget>((tag) => Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                border: Border.all(
+                                                    color: Colors.blueAccent),
+                                              ),
+                                              child: Text(
+                                                  tag), // Gunakan tag untuk menampilkan teks
+                                            ))
+                                        .toList(), // Konversi ke List<Widget>
+                                  ))),
+                        ),
                       ],
                     ),
                     Text(
@@ -476,6 +536,124 @@ class _MerchantScreenState extends State<MerchantScreen> {
     );
   }
 
+  showModalSheet(BuildContext context, data) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+            height: 400,
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+                padding: const EdgeInsets.only(left: 20, top: 20),
+                child: Column(
+                  // mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    // ignore: avoid_unnecessary_containers
+                    Container(
+                        height: 40,
+                        decoration: const BoxDecoration(color: Colors.white),
+                        width: MediaQuery.of(context).size.width,
+                        child: const Align(
+                            alignment: Alignment.topCenter,
+                            child: Text('control',
+                                style:
+                                    TextStyle(fontWeight: FontWeight.bold)))),
+                    GestureDetector(
+                        onTap: () {
+                          print("Edit Merchant");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MerchantCreate(
+                                      name: merchant['name'],
+                                      desc: merchant['description'],
+                                      pathImage: merchant['picture'],
+                                      merchantId: merchant['ID'],
+                                    )),
+                          );
+                        },
+                        child: Container(
+                            height: 30,
+                            decoration:
+                                const BoxDecoration(color: Colors.white),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.store_outlined),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 5),
+                                  child: Text("Edit Merchant"),
+                                )
+                              ],
+                            ))),
+                    Divider(color: Colors.grey[100]),
+
+                    GestureDetector(
+                        onTap: () {
+                          print('Add Item');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MerchandiseUpsert(
+                                      name: '',
+                                      desc: '',
+                                      pathImage: '',
+                                      price: '',
+                                      merchandiseId: 0,
+                                      tag: const [],
+                                      merchantId: merchant['ID'].toString(),
+                                    )),
+                          );
+                        },
+                        child: Container(
+                            height: 30,
+                            decoration:
+                                const BoxDecoration(color: Colors.white),
+                            width: MediaQuery.of(context).size.width,
+                            child: const Row(
+                              children: [
+                                Icon(Icons.add_box_outlined),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 5),
+                                  child: Text("Add Item"),
+                                )
+                              ],
+                            ))),
+                    Divider(color: Colors.grey[100]),
+                    GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => LandingimageMerchant(
+                                        merchantId: merchant['ID'].toString(),
+                                        landingImage:
+                                            merchant['landing_images'],
+                                      )));
+                        },
+                        child: Container(
+                            height: 30,
+                            decoration:
+                                const BoxDecoration(color: Colors.white),
+                            width: MediaQuery.of(context).size.width,
+                            child: const Row(
+                              children: [
+                                Icon(Icons.photo_library_outlined),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 5),
+                                  child: Text("Landing Image"),
+                                )
+                              ],
+                            ))),
+                    Divider(color: Colors.grey[100]),
+                  ],
+                )));
+      },
+    );
+  }
+
   Future<void> fetchMyMerchant() async {
     final response = await MerchantServices.fetchMyMerchant();
     if (response != null) {
@@ -484,17 +662,17 @@ class _MerchantScreenState extends State<MerchantScreen> {
       } else {
         print("fetch merchang: ${response['data']['name']}");
         List merchandiseData = response['data']['merchandise'];
-        if (mounted) {
-          setState(() {
-            merchant = response['data'];
-            landingImage = response['data']['landing_images'];
-            if (merchandiseData.isEmpty) {
-              merchandise = ['0'];
-            } else {
-              merchandise = merchandiseData;
-            }
-          });
-        }
+        // if (mounted) {
+        setState(() {
+          merchant = response['data'];
+          landingImage = response['data']['landing_images'];
+          if (merchandiseData.isEmpty) {
+            merchandise = ['0'];
+          } else {
+            merchandise = merchandiseData;
+          }
+        });
+        // }
       }
     } else {
       const SnackBar(content: Text("Something went Wrong"));

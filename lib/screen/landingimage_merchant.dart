@@ -291,22 +291,40 @@ class _LandingimageMerchantState extends State<LandingimageMerchant> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                       ElevatedButton(
-                          onPressed: _loadAssets,
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue),
-                          child: const Icon(
-                            Icons.photo_library_outlined,
-                            color: Colors.white,
-                          )),
+                        onPressed: _loadAssets,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          minimumSize: const Size(120, 40),
+                        ),
+                        child: const Column(
+                          children: [
+                            Icon(
+                              Icons.photo_library_outlined,
+                              color: Colors.white,
+                            ),
+                            Text("Media", style: TextStyle(color: Colors.white))
+                          ],
+                        ),
+                      ),
                       ElevatedButton(
                         onPressed: () {
                           _uploadMerchantLanding(merchantId, images);
                         },
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green),
-                        child: const Icon(
-                          Icons.save_outlined,
-                          color: Colors.white,
+                          backgroundColor: Colors.green,
+                          minimumSize: const Size(120, 40),
+                        ),
+                        child: const Column(
+                          children: [
+                            Icon(
+                              Icons.save_outlined,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              "Save",
+                              style: TextStyle(color: Colors.white),
+                            )
+                          ],
                         ),
                       )
                     ])

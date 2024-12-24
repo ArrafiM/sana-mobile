@@ -179,17 +179,24 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Column(
+          title: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 'My merchant',
                 style: TextStyle(fontSize: 12),
               ),
-              Text(
-                'Item',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-              ),
+              merchandiseId != 0
+                  ? const Text(
+                      'Update Item',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    )
+                  : const Text(
+                      'Add Item',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
             ],
           ),
           centerTitle: true,
@@ -349,17 +356,31 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
                             ),
                   // const ClipOval(
                   //     child: Icon(Icons.wallpaper_outlined, size: 100)),
-                  const SizedBox(width: 20),
+                  const SizedBox(width: 10),
                   Column(
                     children: [
                       ElevatedButton(
-                        onPressed: () => _pickImage(ImageSource.camera),
-                        child: const Icon(Icons.add_a_photo_outlined),
-                      ),
+                          onPressed: () => _pickImage(ImageSource.camera),
+                          child: const Column(
+                            children: [
+                              Icon(Icons.add_a_photo_outlined),
+                              Text(
+                                "Photo",
+                                style: TextStyle(fontSize: 10),
+                              )
+                            ],
+                          )),
                       ElevatedButton(
-                        onPressed: () => _pickImage(ImageSource.gallery),
-                        child: const Icon(Icons.photo_library_outlined),
-                      ),
+                          onPressed: () => _pickImage(ImageSource.gallery),
+                          child: const Column(
+                            children: [
+                              Icon(Icons.photo_library_outlined),
+                              Text(
+                                "Media",
+                                style: TextStyle(fontSize: 10),
+                              )
+                            ],
+                          )),
                     ],
                   ),
                   const SizedBox(width: 5),

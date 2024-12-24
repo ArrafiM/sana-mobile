@@ -48,7 +48,7 @@ class ProfileTopbar extends StatelessWidget implements PreferredSizeWidget {
             decoration: BoxDecoration(
                 color: Colors.white, borderRadius: BorderRadius.circular(16)),
             child: Padding(
-                padding: EdgeInsets.only(left: 20, top: 20),
+                padding: const EdgeInsets.only(left: 20, top: 20),
                 child: Column(
                   // mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,

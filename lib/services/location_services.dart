@@ -25,11 +25,11 @@ class LocationServices {
   }
 
   static Future fetchNearestLocations(
-      lat, long, radius, page, page_size, itemName, item) async {
+      lat, long, radius, page, pageSize, itemName, item) async {
     print("call api location, lat: $lat, long: $long");
     String apiUrl = UserServices.apiUrl();
     var url = '$apiUrl/api/locations/nearest'
-        '?latitude=$lat&longitude=$long&radius=$radius&page=$page&page_size=$page_size'
+        '?latitude=$lat&longitude=$long&radius=$radius&page=$page&page_size=$pageSize'
         '&excludemy=true&merchandise=$item';
     if (itemName != null) url = '$url&itemname=$itemName';
     String? token = await UserServices.checkToken();

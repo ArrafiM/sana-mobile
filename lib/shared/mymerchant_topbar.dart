@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sana_mobile/screen/landingimage_merchant.dart';
 import 'package:sana_mobile/screen/merchandise_upsert.dart';
 import 'package:sana_mobile/screen/merchant_create.dart';
-import 'package:sana_mobile/shared/logout.dart';
 
 class MyMerchantTopbar extends StatefulWidget implements PreferredSizeWidget {
   final Map<String, dynamic> merchant;
@@ -24,6 +23,7 @@ class _MyMerchantTopbarState extends State<MyMerchantTopbar> {
     setState(() {
       merchant = widget.merchant;
     });
+    print(merchant);
   }
 
   @override
@@ -49,18 +49,20 @@ class _MyMerchantTopbarState extends State<MyMerchantTopbar> {
       ),
       centerTitle: true,
       actions: <Widget>[
-        IconButton(
-          icon: const Icon(Icons.settings_outlined),
-          onPressed: () {
-            // Aksi saat tombol notifications ditekan
-            showModalSheet(context, null);
-          },
-        ),
+        merchant.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () {
+                  // Aksi saat tombol notifications ditekan
+                  showModalSheet(context, null);
+                },
+              )
+            : const SizedBox.shrink()
       ],
     );
   }
 
-  void showModalSheet(BuildContext context, data) {
+  showModalSheet(BuildContext context, data) {
     // if (data != null) {
     //   print("modal dengan data: $data");
     // }
@@ -177,12 +179,6 @@ class _MyMerchantTopbarState extends State<MyMerchantTopbar> {
                               ],
                             ))),
                     Divider(color: Colors.grey[100]),
-                    ElevatedButton(
-                      child: const Text('Logout'),
-                      onPressed: () {
-                        showLogoutConfirmDialog(context);
-                      },
-                    ),
                   ],
                 )));
       },

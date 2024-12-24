@@ -6,14 +6,14 @@ import 'package:sana_mobile/screen/image_viewer_screen.dart';
 import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/profile_topbar.dart';
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+class Profile extends StatefulWidget {
+  const Profile({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<Profile> createState() => _ProfileState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileState extends State<Profile> {
   List users = [];
   int totalData = 0;
   List<ImageModel> images = [];
