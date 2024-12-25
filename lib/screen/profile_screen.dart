@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:sana_mobile/screen/changepass_screen.dart';
 import 'package:sana_mobile/screen/profileupdate_screen.dart';
 import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/logout.dart';
@@ -41,12 +42,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _messageSubscription = SocketService().messageStream.listen((message) {
       print("socket msg mymerchant: $message");
       if (message == "myMerchant$myId") {
-        setState(() {
-          isLoad = true;
-        });
         fetchuserData();
       }
     });
+  }
+
+  Future<void> _refresh() async {
+    fetchuserData();
   }
 
   @override
@@ -116,8 +118,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Column(
                       children: [
                         GestureDetector(
-                            onTap: () {
-                              Navigator.push(
+                            onTap: () async {
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => ProfileupdateScreen(
@@ -126,6 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           pathImage: userData["picture"],
                                         )),
                               );
+                              _refresh();
                             },
                             child: const SizedBox(
                                 height: 30,
@@ -140,8 +143,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ))),
                         Divider(color: Colors.grey[100]),
                         GestureDetector(
-                          onTap: () {
-                            print("Change pass");
+                          onTap: () async {
+                            await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ChangepassScreen(
+                                        userId: userData["ID"])));
+                            _refresh();
                           },
                           child: SizedBox(
                             height: 30,
@@ -189,6 +197,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> fetchuserData() async {
+    setState(() {
+      isLoad = true;
+    });
     print("fetch user profile");
     final response = await UserServices.fetchUsers();
     if (response != null) {
@@ -198,5 +209,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else {
       // const SnackBar(content: Text("Something went Wrong"));
     }
+    setState(() {
+      isLoad = false;
+    });
   }
 }

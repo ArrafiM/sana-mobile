@@ -108,13 +108,14 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.only(left: 10, right: 10),
       itemBuilder: (context, index) {
         return GestureDetector(
-          onTap: () {
+          onTap: () async {
             print('chat name : ${chatrooms[index]['receiverdata']['name']}');
-            Navigator.push(
+            await Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => ChatroomScreen(room: chatrooms[index])),
             );
+            fetchChatroom();
           },
           onDoubleTap: () {
             print('last chat : ${chatrooms[index]['message']}');

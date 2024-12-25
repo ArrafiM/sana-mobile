@@ -28,6 +28,7 @@ class _ProfileupdateScreenState extends State<ProfileupdateScreen> {
   int userId = 0;
   final ImagePicker _picker = ImagePicker();
   String? myId = '';
+  bool isLoad = false;
 
   Future<void> _pickImage(ImageSource source) async {
     if (source == ImageSource.camera) {
@@ -76,8 +77,6 @@ class _ProfileupdateScreenState extends State<ProfileupdateScreen> {
     });
   }
 
-  
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -114,7 +113,7 @@ class _ProfileupdateScreenState extends State<ProfileupdateScreen> {
     );
   }
 
-  void _createProfile() {
+  void _updateProfile() {
     String name = _nameController.text.trim();
 
     // Check if fields are empty
@@ -162,11 +161,11 @@ class _ProfileupdateScreenState extends State<ProfileupdateScreen> {
         body: Padding(
             padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
             child: SingleChildScrollView(
-              child: ProfileupdateScreenForm(),
+              child: profileupdateScreenForm(),
             )));
   }
 
-  Container ProfileupdateScreenForm() {
+  Container profileupdateScreenForm() {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(maxWidth: 400),
@@ -268,12 +267,20 @@ class _ProfileupdateScreenState extends State<ProfileupdateScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _createProfile,
+              onPressed: () {
+                if (isLoad == false) {
+                  _updateProfile();
+                }
+              },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue, // Text color
               ),
-              child: const Text('Save'),
+              child: isLoad
+                  ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                  : const Text('Save'),
             ),
           ),
         ],
@@ -283,6 +290,9 @@ class _ProfileupdateScreenState extends State<ProfileupdateScreen> {
 
   Future<void> _putprofile(context, name, File? image) async {
     // Contoh menyimpan token setelah login berhasil
+    setState(() {
+      isLoad = true;
+    });
     bool response = await UserServices.putUser(name, image);
     print("merchant updated: $response");
     if (!response) {
@@ -290,6 +300,8 @@ class _ProfileupdateScreenState extends State<ProfileupdateScreen> {
     } else {
       _showAlertDialog("user [$name] updated!", false, 'Successfully');
     }
-    ;
+    setState(() {
+      isLoad = false;
+    });
   }
 }

@@ -18,13 +18,12 @@ class LandingimageMerchant extends StatefulWidget {
 
 class _LandingimageMerchantState extends State<LandingimageMerchant> {
   List<Asset> images = <Asset>[];
-  String _error = 'Tap media button to select new image!';
+  String _error = 'Pilih gambar!';
   bool _permissionReady = false;
   String merchantId = '';
   List landingImage = [];
   String publicApiUrl = "";
   List<int> removeId = [];
-  bool isLoad = false;
   AppLifecycleListener? _lifecycleListener;
   static const List<Permission> _permissions = [
     Permission.storage,
@@ -53,7 +52,7 @@ class _LandingimageMerchantState extends State<LandingimageMerchant> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     List<Asset> resultList = <Asset>[];
-    String error = 'Tap media button to select new image!';
+    String error = 'Pilih gambar!';
 
     const AlbumSetting albumSetting = AlbumSetting(
       fetchResults: {
@@ -287,113 +286,61 @@ class _LandingimageMerchantState extends State<LandingimageMerchant> {
                       child: _myLandingImage()))
               : const SizedBox.shrink(),
           Center(child: Text('Note: $_error')),
+          images.isNotEmpty || removeId.isNotEmpty
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                      ElevatedButton(
+                        onPressed: _loadAssets,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          minimumSize: const Size(120, 40),
+                        ),
+                        child: const Column(
+                          children: [
+                            Icon(
+                              Icons.photo_library_outlined,
+                              color: Colors.white,
+                            ),
+                            Text("Media", style: TextStyle(color: Colors.white))
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          _uploadMerchantLanding(merchantId, images);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          minimumSize: const Size(120, 40),
+                        ),
+                        child: const Column(
+                          children: [
+                            Icon(
+                              Icons.save_outlined,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              "Save",
+                              style: TextStyle(color: Colors.white),
+                            )
+                          ],
+                        ),
+                      )
+                    ])
+              : ElevatedButton(
+                  onPressed: _loadAssets,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                  child: const Icon(
+                    Icons.photo_library_outlined,
+                    color: Colors.white,
+                  )),
           Expanded(
             child: Padding(
                 padding: const EdgeInsets.all(2.0), child: _buildGridView()),
           ),
         ],
       ),
-      floatingActionButton: floatingActionButton(),
-    );
-  }
-
-  Stack floatingActionButton() {
-    return Stack(
-      children: [
-        Align(
-          alignment: Alignment.bottomRight,
-          child: Padding(
-              padding: const EdgeInsets.only(right: 10, bottom: 15),
-              child: images.isNotEmpty || removeId.isNotEmpty
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                          SizedBox(
-                            width: 70,
-                            height: 70,
-                            child: FloatingActionButton(
-                              onPressed: _loadAssets,
-                              heroTag: "media2",
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(100)),
-                              //   minimumSize: const Size(80, 80),
-                              // ),
-                              child: const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.photo_library_outlined,
-                                    color: Colors.white,
-                                  ),
-                                  Text("Media",
-                                      style: TextStyle(color: Colors.white))
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          SizedBox(
-                            width: 70,
-                            height: 70,
-                            child: FloatingActionButton(
-                              onPressed: () {
-                                _uploadMerchantLanding(merchantId, images);
-                              },
-                              backgroundColor: Colors.green,
-                              heroTag: "save",
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(100)),
-                              //   minimumSize: const Size(80, 80),
-                              // ),
-                              child: const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.save_outlined,
-                                    color: Colors.white,
-                                  ),
-                                  Text(
-                                    "Save",
-                                    style: TextStyle(color: Colors.white),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ])
-                  : SizedBox(
-                      height: 70,
-                      width: 70,
-                      child: FloatingActionButton(
-                        onPressed: _loadAssets,
-                        // style: ElevatedButton.styleFrom(
-                        //   backgroundColor: Colors.blue,
-                        heroTag: "media",
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100)),
-                        //   minimumSize: const Size(80, 80),
-                        // ),
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.photo_library_outlined,
-                              color: Colors.white,
-                            ),
-                            Text("Media",
-                                style: TextStyle(color: Colors.white))
-                          ],
-                        ),
-                      ),
-                    )),
-        ),
-        isLoad == true
-            ? const Align(
-                alignment: Alignment.center,
-                child: CircularProgressIndicator(),
-              )
-            : const SizedBox.shrink()
-      ],
     );
   }
 
@@ -428,9 +375,6 @@ class _LandingimageMerchantState extends State<LandingimageMerchant> {
   }
 
   Future<void> _uploadMerchantLanding(merchantId, List<Asset> image) async {
-    setState(() {
-      isLoad = true;
-    });
     // Contoh menyimpan token setelah login berhasil
     bool response = await MerchantServices.uploadMerchantImages(
         merchantId, image, removeId);
@@ -440,8 +384,5 @@ class _LandingimageMerchantState extends State<LandingimageMerchant> {
     } else {
       _showAlertDialog("Merchant landing uploaded!", false, 'Successfully');
     }
-    setState(() {
-      isLoad = false;
-    });
   }
 }

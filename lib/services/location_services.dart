@@ -76,4 +76,32 @@ class LocationServices {
       return true;
     }
   }
+
+  static Future postMylocation(lat, long) async {
+    // print("POST socket lat: $lat");
+    // print("POST socket long: $long");
+    print("Post my current location!");
+    var body = jsonEncode({
+      'lat': lat,
+      'long': long,
+    });
+    String? token = await UserServices.checkToken();
+    String? apiUrl = UserServices.apiUrl();
+    final response = await http.post(Uri.parse('$apiUrl/api/locations'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: body);
+    // final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan: ${response.statusCode}');
+      await UserServices.handleUnauthorized();
+      return response.statusCode;
+    } else {
+      // print('Latlong posted to API: ${json['data']}');
+      return response.statusCode;
+    }
+  }
 }

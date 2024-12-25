@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/models/detected_location.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:sana_mobile/services/location_services.dart';
+// import 'package:sana_mobile/services/location_services.dart';
 import 'package:sana_mobile/services/socket_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
 // import 'package:sana_mobile/shared/logout.dart';
@@ -30,7 +30,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
 
   final SocketService _socketService =
       SocketService(); // Initialize the socket service
-  late StreamSubscription<String> _messageSubscription;
+  // late StreamSubscription<String> _messageSubscription;
 
   BorderRadiusGeometry radius = const BorderRadius.only(
     topLeft: Radius.circular(24.0),
@@ -52,26 +52,26 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
 
   Future<void> _webSocketConnect() async {
     // Connect to the WebSocket server
-    String? userId = await UserServices.checkMyId();
+    // String? userId = await UserServices.checkMyId();
     String wsUrl = await UserServices.wsUrl();
     _socketService.connect(wsUrl);
     // Listen for messages from the WebSocket
-    _messageSubscription = _socketService.messageStream.listen((message) async {
-      // Handle incoming messages
-      print("Received message: $message");
-      if (message == 'postMyLocationuser$userId') {
-        // _socketService.postLocation(userId, lat, long);
-        bool response = await LocationServices.getNewLatlong(lat, long);
-        if (response) {
-          _socketService.triggerPostLocation(userId);
-        }
-      }
-    });
+    // _messageSubscription = _socketService.messageStream.listen((message) async {
+    //   // Handle incoming messages
+    //   print("Received message: $message");
+    //   if (message == 'postMyLocationuser$userId') {
+    //     // _socketService.postLocation(userId, lat, long);
+    //     bool response = await LocationServices.getNewLatlong(lat, long);
+    //     if (response) {
+    //       _socketService.triggerPostLocation(userId);
+    //     }
+    //   }
+    // });
   }
 
   @override
   void dispose() {
-    _messageSubscription.cancel(); // Cancel the subscription
+    // _messageSubscription.cancel(); // Cancel the subscription
     // _socketService.disconnect(); // Disconnect the WebSocket
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -110,7 +110,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
           long = position.longitude;
         });
       }
-      _postNewLocation(lat, long);
+      // _postNewLocation(lat, long);
       //localStorage
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('lat', lat.toString());
@@ -135,15 +135,5 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
               long: long,
             ),
     );
-  }
-
-  Future<bool> _postNewLocation(lat, long) async {
-    // Contoh menyimpan token setelah login berhasil
-    bool response = await LocationServices.getNewLatlong(lat, long);
-    print("merchant updated: $response");
-    // if (!response) {
-    // showLogoutDialog(context);
-    // }
-    return response;
   }
 }

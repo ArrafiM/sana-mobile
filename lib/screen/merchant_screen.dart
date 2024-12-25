@@ -60,9 +60,6 @@ class _MerchantScreenState extends State<MerchantScreen> {
     _messageSubscription = SocketService().messageStream.listen((message) {
       print("socket msg mymerchant: $message");
       if (message == "myMerchant$myId") {
-        setState(() {
-          isLoad = true;
-        });
         fetchMyMerchant();
       }
     });
@@ -78,7 +75,6 @@ class _MerchantScreenState extends State<MerchantScreen> {
       setState(() {
         backgroundColorLanding =
             paletteGenerator.dominantColor?.color ?? Colors.white;
-        // isLoadColor = false;
       });
     }
   }
@@ -197,9 +193,9 @@ class _MerchantScreenState extends State<MerchantScreen> {
                       children: [
                       const Text("Create your merchant"),
                       ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             print('Create merchant page');
-                            Navigator.push(
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const MerchantCreate(
@@ -209,6 +205,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                         merchantId: 0,
                                       )),
                             );
+                            _refresh();
                           },
                           style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
@@ -466,8 +463,8 @@ class _MerchantScreenState extends State<MerchantScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       GestureDetector(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => MerchandiseUpsert(
@@ -482,6 +479,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                               ['merchant_id']
                                           .toString())),
                             );
+                            _refresh();
                           },
                           child: const Icon(Icons.edit_note_outlined,
                               color: Colors.green, size: 35)),
@@ -562,9 +560,9 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                 style:
                                     TextStyle(fontWeight: FontWeight.bold)))),
                     GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           print("Edit Merchant");
-                          Navigator.push(
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => MerchantCreate(
@@ -574,6 +572,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                       merchantId: merchant['ID'],
                                     )),
                           );
+                          _refresh();
                         },
                         child: Container(
                             height: 30,
@@ -591,9 +590,9 @@ class _MerchantScreenState extends State<MerchantScreen> {
                     Divider(color: Colors.grey[100]),
 
                     GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           print('Add Item');
-                          Navigator.push(
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => MerchandiseUpsert(
@@ -606,6 +605,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                       merchantId: merchant['ID'].toString(),
                                     )),
                           );
+                          _refresh();
                         },
                         child: Container(
                             height: 30,
@@ -623,8 +623,8 @@ class _MerchantScreenState extends State<MerchantScreen> {
                             ))),
                     Divider(color: Colors.grey[100]),
                     GestureDetector(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          await Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => LandingimageMerchant(
@@ -632,6 +632,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                         landingImage:
                                             merchant['landing_images'],
                                       )));
+                          _refresh();
                         },
                         child: Container(
                             height: 30,
@@ -655,7 +656,10 @@ class _MerchantScreenState extends State<MerchantScreen> {
   }
 
   Future<void> fetchMyMerchant() async {
-    final response = await MerchantServices.fetchMyMerchant();
+    setState(() {
+      isLoad = true;
+    });
+    final response = await MerchantServices.fetchMyMerchant(false);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");

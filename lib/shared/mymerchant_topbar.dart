@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sana_mobile/screen/landingimage_merchant.dart';
+import 'package:sana_mobile/screen/landingimage_merchant_old.dart';
 import 'package:sana_mobile/screen/merchandise_upsert.dart';
 import 'package:sana_mobile/screen/merchant_create.dart';
 

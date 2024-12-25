@@ -9,6 +9,7 @@ import 'package:sana_mobile/screen/detail_point.dart';
 // import 'package:sana_mobile/screen/chat_screen.dart';
 import 'package:sana_mobile/screen/list_point.dart';
 import 'package:sana_mobile/services/location_services.dart';
+import 'package:sana_mobile/services/merchant_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/logout.dart';
 
@@ -35,6 +36,8 @@ class _MapSanaState extends State<MapSana> {
   bool isShow = false;
   int indexShow = -1;
   Map merchant = {};
+  Map myMerchant = {};
+  bool isLoad = false;
 
   String publicApiUrl = "";
 
@@ -59,6 +62,7 @@ class _MapSanaState extends State<MapSana> {
     });
 
     _fetchNearestLocations(lat, long);
+    _fetchMymerchant();
   }
 
   @override
@@ -180,6 +184,8 @@ class _MapSanaState extends State<MapSana> {
               : const SizedBox.shrink(),
           showHide(),
           refreshButton(),
+          postCurrentLocation(),
+          loadingCenter(),
         ])
       ],
     );
@@ -187,19 +193,18 @@ class _MapSanaState extends State<MapSana> {
 
   Align popUpPointTitle(BuildContext context) {
     return Align(
-        alignment: Alignment.bottomLeft,
+        alignment: Alignment.topLeft,
         child: Padding(
-            padding: const EdgeInsets.only(left: 10, bottom: 10),
+            padding: const EdgeInsets.only(left: 10, top: 10),
             child: Container(
               height: 60,
               width: 250,
               decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(15)),
+                  color: Colors.white, borderRadius: BorderRadius.circular(15)),
               child: Padding(
                   padding: const EdgeInsets.only(left: 5),
                   child: Row(
-                      // crossAxisAlignment: CrossAxisAlignment.start,
+                      // crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         merchant['picture'] == ""
                             ? const Padding(
@@ -243,10 +248,11 @@ class _MapSanaState extends State<MapSana> {
                                           point: pinData[indexShow])),
                                 );
                               },
+                              // child: const Text("Detail"),
                               child: const Icon(
-                                Icons.keyboard_arrow_up_outlined,
+                                Icons.chevron_right_outlined,
                                 color: Colors.black,
-                                size: 40,
+                                size: 30,
                               )),
                         )
                       ])),
@@ -400,12 +406,48 @@ class _MapSanaState extends State<MapSana> {
               print('hideshow');
               updateShowHide();
             },
-            backgroundColor: Colors.blue,
+            backgroundColor: isShow ? Colors.blue[900] : Colors.blue,
             child: isShow
                 ? const Icon(Icons.visibility_off_outlined, color: Colors.white)
                 : const Icon(Icons.visibility_outlined, color: Colors.white)),
       ),
     );
+  }
+
+  Padding postCurrentLocation() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20, left: 15),
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: FloatingActionButton(
+            heroTag: "postLocation",
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+            onPressed: () {
+              if (myMerchant.isEmpty) {
+                showAlert(
+                    "Alert",
+                    "Cannot post your location, please to create merchant first!",
+                    false);
+              } else {
+                showAlert("Alert", "Share your current location?", true);
+              }
+            },
+            backgroundColor: Colors.blue,
+            child: const Icon(Icons.share_location, color: Colors.white)),
+      ),
+    );
+  }
+
+  Align loadingCenter() {
+    if (isLoad == false) {
+      return const Align(child: SizedBox.shrink());
+    } else {
+      return const Align(
+        alignment: Alignment.center,
+        child: CircularProgressIndicator(),
+      );
+    }
   }
 
   void popUpPoint(index) {
@@ -429,6 +471,50 @@ class _MapSanaState extends State<MapSana> {
         isShow = false;
       }
     });
+  }
+
+  showAlert(title, String content, bool isPost) {
+    showDialog(
+      context: context,
+      // barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          backgroundColor: Colors.white,
+          actions: [
+            isPost == true
+                ? TextButton(
+                    child: const Text(
+                      'No',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  )
+                : const SizedBox.shrink(),
+            TextButton(
+              child: isPost == true
+                  ? const Text(
+                      'Yes',
+                      style: TextStyle(color: Colors.blue),
+                    )
+                  : const Text(
+                      'ok',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+              onPressed: () {
+                if (isPost == true) {
+                  _postNewLocation(lat, long);
+                }
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _getCurrentLocation() async {
@@ -476,5 +562,44 @@ class _MapSanaState extends State<MapSana> {
     } else {
       const SnackBar(content: Text("Something went Wrong"));
     }
+  }
+
+  Future<void> _fetchMymerchant() async {
+    final response = await MerchantServices.fetchMyMerchant(true);
+    if (response != null) {
+      if (response == 401) {
+        print("Unauthorized 401");
+      } else {
+        print("fetch merchang: ${response['data']['name']}");
+        setState(() {
+          myMerchant = response['data'];
+        });
+      }
+    } else {
+      const SnackBar(content: Text("Something went Wrong"));
+    }
+  }
+
+  Future<int> _postNewLocation(lat, long) async {
+    setState(() {
+      isLoad = true;
+    });
+    // Contoh menyimpan token setelah login berhasil
+    int response = await LocationServices.postMylocation(lat, long);
+    print("new location updated: $response");
+    setState(() {
+      isLoad = false;
+    });
+    if (response != 200) {
+      if (response == 401) {
+        showLogoutDialog(context);
+      } else {
+        showAlert("Post location", "Failed post your location!", false);
+      }
+    } else {
+      showAlert("Post location", "Success post your location!", false);
+    }
+
+    return response;
   }
 }

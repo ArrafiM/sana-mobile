@@ -101,6 +101,32 @@ class UserServices {
     }
   }
 
+  static Future changePass(data) async {
+    var body = jsonEncode({
+      'oldpass': data['oldpass'],
+      'newpass': data['newpass'],
+      'confirm_newpass': data['confirm_newpass'],
+    });
+    String? token = await UserServices.checkToken();
+    String apiurl = apiUrl();
+    final response = await http.put(
+      Uri.parse('$apiurl/api/users/changepass'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+    final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan: ${response.statusCode}');
+      return json;
+    } else {
+      print('register success!');
+      return json;
+    }
+  }
+
   static String apiUrl() {
     String apiUrl = "${dotenv.env['API_URL']}";
     return apiUrl;

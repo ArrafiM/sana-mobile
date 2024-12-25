@@ -29,10 +29,14 @@ class MerchantServices {
     return null;
   }
 
-  static Future fetchMyMerchant() async {
+  static Future fetchMyMerchant(bool isCek) async {
     print("call api my merchant data");
     String apiUrl = UserServices.apiUrl();
     var url = '$apiUrl/api/mymerchants';
+    if (isCek) {
+      url = '$url?cek=true';
+    }
+    print("url merchant: $url");
     String? token = await UserServices.checkToken();
     final uri = Uri.parse(url);
     final response = await http.get(uri, headers: {
