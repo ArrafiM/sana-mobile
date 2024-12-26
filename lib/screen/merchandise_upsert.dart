@@ -29,6 +29,7 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   String publicApiUrl = "";
   File? _image;
   String pathImage = '';
@@ -36,6 +37,7 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
   int merchandiseId = 0;
   bool addTag = false;
   List tagData = [];
+  bool isLoad = false;
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(ImageSource source) async {
@@ -97,7 +99,15 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
   @override
   void dispose() {
     _nameController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _tagController.dispose();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _focusTextField() {
+    FocusScope.of(context).requestFocus(_focusNode);
   }
 
   void _showAlertDialog(String message, bool dissmissiable, String title) {
@@ -130,7 +140,10 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
     );
   }
 
-  void _createMerchant() {
+  void _createItem() {
+    setState(() {
+      isLoad = true;
+    });
     String name = _nameController.text.trim();
     String description = _descriptionController.text.trim();
     String price = _priceController.text.trim();
@@ -155,9 +168,13 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
     } else {
       _putMerchandise(context, name, description, price);
     }
+    setState(() {
+      isLoad = false;
+    });
   }
 
   void _showAddTag(data) {
+    _focusTextField();
     String tag = _tagController.text.trim();
     if (data == false) {
       // if (tag.isEmpty) {
@@ -281,7 +298,6 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
               ),
               TextField(
                 controller: _priceController,
-                maxLines: null,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.black), // Warna border
@@ -431,7 +447,7 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
                           width: 250,
                           child: TextField(
                             controller: _tagController,
-                            maxLines: null,
+                            focusNode: _focusNode,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(
                                 borderSide: BorderSide(
@@ -473,13 +489,20 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _createMerchant,
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.blue, // Text color
-              ),
-              child: const Text('Save'),
-            ),
+                onPressed: () {
+                  if (isLoad == false) {
+                    _createItem();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue, // Text color
+                ),
+                child: isLoad
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                    : const Text('Save')),
           ),
         ],
       ),

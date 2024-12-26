@@ -565,7 +565,7 @@ class _MapSanaState extends State<MapSana> {
   }
 
   Future<void> _fetchMymerchant() async {
-    final response = await MerchantServices.fetchMyMerchant(true);
+    final response = await MerchantServices.fetchMyMerchant(true, false);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");

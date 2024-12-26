@@ -36,20 +36,22 @@ class _MerchantScreenState extends State<MerchantScreen> {
   Map<String, dynamic> merchant = {};
   List landingImage = [];
   bool isLoad = true;
+  bool isLoadItem = true;
   String? myId = '';
-
+  int page = 1;
+  int pageSize = 10;
   List merchandise = [];
 
   @override
   void initState() {
+    _scrollController = ScrollController();
     super.initState();
     _websocketConnect();
     String apiUrl = UserServices.apiUrl();
     setState(() {
       publicApiUrl = "$apiUrl/public/";
     });
-    _scrollController = ScrollController();
-    fetchMyMerchant();
+    _fetchMyMerchant();
   }
 
   Future<void> _websocketConnect() async {
@@ -60,7 +62,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
     _messageSubscription = SocketService().messageStream.listen((message) {
       print("socket msg mymerchant: $message");
       if (message == "myMerchant$myId") {
-        fetchMyMerchant();
+        _fetchMyMerchant();
       }
     });
   }
@@ -79,8 +81,18 @@ class _MerchantScreenState extends State<MerchantScreen> {
     }
   }
 
-  Future<void> _refresh() async {
-    fetchMyMerchant();
+  Future<void> _refresh(bool merch, bool item, last, update, index) async {
+    if (merch) {
+      _fetchMyMerchant();
+    }
+    if (item) {
+      _fetchMerchantdise(merchant['ID'], last, update, index);
+    }
+  }
+
+  Future<void> _refreshmerchant() async {
+    _fetchMyMerchant();
+    // _fetchMerchantdise(merchant['ID']);
   }
 
   void didChangeAppLifecycleState(AppLifecycleState state) async {
@@ -89,21 +101,21 @@ class _MerchantScreenState extends State<MerchantScreen> {
       // Disconnect WebSocket when the app goes to background or is closed
       SocketService().disconnect();
     } else if (state == AppLifecycleState.resumed) {
-      fetchMyMerchant();
+      _fetchMyMerchant();
       // Reconnect WebSocket when the app resumes
       String wsUrl = await UserServices.wsUrl();
       SocketService().connect(wsUrl);
     }
   }
 
-  deleteConfirm(id, name) {
+  showConfirm(index, id, title, String content, String name, bool isActive) {
     showDialog(
       context: context,
       // barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Item!'),
-          content: Text('Are you sure to delete item [$name]?'),
+          title: Text(title),
+          content: Text(content),
           backgroundColor: Colors.white,
           actions: [
             TextButton(
@@ -120,9 +132,14 @@ class _MerchantScreenState extends State<MerchantScreen> {
                 'Yes',
                 style: TextStyle(color: Colors.blue),
               ),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-                deleteMerchindise(id, name);
+                if (name.isNotEmpty) {
+                  await deleteMerchindise(id, name, index);
+                } else {
+                  await activateItem(id, isActive, index);
+                }
+                _refresh(false, true, null, null, -1);
               },
             ),
           ],
@@ -181,7 +198,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
 
   RefreshIndicator _myMerchantData() {
     return RefreshIndicator(
-      onRefresh: _refresh,
+      onRefresh: _refreshmerchant,
       child: isLoad
           ? const Center(
               child: CircularProgressIndicator(),
@@ -205,7 +222,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                         merchantId: 0,
                                       )),
                             );
-                            _refresh();
+                            _refresh(true, false, null, null, -1);
                           },
                           style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
@@ -216,27 +233,35 @@ class _MerchantScreenState extends State<MerchantScreen> {
                             color: Colors.white,
                           ))
                     ]))
-              : ListView.builder(
-                  itemCount: merchandise.length,
-                  padding: const EdgeInsets.only(top: 0),
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return Column(children: [
-                        landingImage.isEmpty
-                            ? const SizedBox.shrink()
-                            : merchantHeader(),
-                        landingImage.isEmpty
-                            ? const SizedBox.shrink()
-                            : sliderIndicator(),
-                        merchantDetail(context),
-                        merchandiseTitle(),
-                        _merchandiseList(index),
-                      ]);
-                    } else {
-                      return _merchandiseList(index);
-                    }
-                  },
-                ),
+              : _listViewItem(),
+    );
+  }
+
+  ListView _listViewItem() {
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: merchandise.length + (isLoadItem ? 1 : 0),
+      padding: const EdgeInsets.only(top: 0),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Column(children: [
+            landingImage.isEmpty ? const SizedBox.shrink() : merchantHeader(),
+            landingImage.isEmpty ? const SizedBox.shrink() : sliderIndicator(),
+            merchantDetail(context),
+            merchandiseTitle(),
+            _merchandiseList(index),
+          ]);
+        } else if (index < merchandise.length) {
+          return _merchandiseList(index);
+        } else {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -365,13 +390,14 @@ class _MerchantScreenState extends State<MerchantScreen> {
     } else {
       List<dynamic> items = merchandise[index]['tag'] ?? [];
       List<String> stringItems = items.map((item) => item.toString()).toList();
+      bool isActive = merchandise[index]['active'];
       return Container(
           height: 120,
           width: MediaQuery.of(context).size.width,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            //  border: Border.all(color: Colors.black)
-          ),
+          decoration:
+              BoxDecoration(color: isActive ? Colors.white : Colors.grey[100]
+                  //  border: Border.all(color: Colors.black)
+                  ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -423,37 +449,67 @@ class _MerchantScreenState extends State<MerchantScreen> {
                           // decoration: BoxDecoration(
                           //     border: Border.all(color: Colors.grey)),
                           width: MediaQuery.of(context).size.width - 160,
-                          child: SingleChildScrollView(
-                              child: Padding(
-                                  padding: const EdgeInsets.only(top: 10),
-                                  child: Wrap(
-                                    spacing:
-                                        5.0, // Jarak horizontal antar kotak
-                                    runSpacing:
-                                        2.0, // Jarak vertikal antar kotak
-                                    children: stringItems
-                                        .map<Widget>((tag) => Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                border: Border.all(
-                                                    color: Colors.blueAccent),
-                                              ),
-                                              child: Text(
-                                                  tag), // Gunakan tag untuk menampilkan teks
-                                            ))
-                                        .toList(), // Konversi ke List<Widget>
-                                  ))),
+                          child: tagItem(stringItems),
                         ),
                       ],
                     ),
-                    Text(
-                      formatCurrency(merchandise[index]['price'].toDouble()),
-                      style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color.fromARGB(255, 23, 85, 136)),
-                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width - 170,
+                      height: 20,
+                      // decoration: const BoxDecoration(color: Colors.grey),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            formatCurrency(
+                                merchandise[index]['price'].toDouble()),
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color.fromARGB(255, 23, 85, 136)),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              bool activate = true;
+                              String title = "Confirmation";
+                              String content = "Set to [active] this item?";
+                              if (isActive == activate) {
+                                activate = false;
+                                content = "Set to [inactive] this item?";
+                              }
+                              showConfirm(
+                                index,
+                                merchandise[index]['ID'],
+                                title,
+                                content,
+                                "",
+                                activate,
+                              );
+                            },
+                            child: Container(
+                              height: 20,
+                              width: 60,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? Colors.blue
+                                    : Colors.grey, // Warna latar belakang
+                                borderRadius: BorderRadius.circular(
+                                    20), // Membuat latar berbentuk lingkaran
+                              ),
+                              child: Center(
+                                  child: Text(
+                                isActive ? 'Active' : 'Inactive',
+                                style: const TextStyle(
+                                  color: Colors.white, // Warna teks
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -479,25 +535,55 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                               ['merchant_id']
                                           .toString())),
                             );
-                            _refresh();
+                            _refresh(false, true, true, true, index);
                           },
                           child: const Icon(Icons.edit_note_outlined,
                               color: Colors.green, size: 35)),
                       GestureDetector(
                           onTap: () {
+                            String name = merchandise[index]['name'];
                             print("delete");
-                            deleteConfirm(merchandise[index]['ID'],
-                                merchandise[index]['name']);
+                            showConfirm(
+                              index,
+                              merchandise[index]['ID'],
+                              'Delete Item!',
+                              'Are you sure to delete item [$name]?',
+                              name,
+                              false,
+                            );
                           },
                           child: const Icon(
                             Icons.delete,
                             color: Colors.red,
-                          ))
+                          )),
+                      // const SizedBox(width: 10, height: 12)
                     ],
                   ))
             ],
           ));
     }
+  }
+
+  SingleChildScrollView tagItem(List<String> stringItems) {
+    return SingleChildScrollView(
+        child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Wrap(
+              spacing: 5.0, // Jarak horizontal antar kotak
+              runSpacing: 2.0, // Jarak vertikal antar kotak
+              children: stringItems
+                  .map<Widget>((tag) => Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.grey),
+                        ),
+                        child: Text(
+                          tag,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ), // Gunakan tag untuk menampilkan teks
+                      ))
+                  .toList(), // Konversi ke List<Widget>
+            )));
   }
 
   String formatCurrency(double amount) {
@@ -572,7 +658,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                       merchantId: merchant['ID'],
                                     )),
                           );
-                          _refresh();
+                          _refresh(true, false, null, null, -1);
                         },
                         child: Container(
                             height: 30,
@@ -605,7 +691,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                       merchantId: merchant['ID'].toString(),
                                     )),
                           );
-                          _refresh();
+                          _refresh(false, true, true, false, -1);
                         },
                         child: Container(
                             height: 30,
@@ -632,7 +718,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                         landingImage:
                                             merchant['landing_images'],
                                       )));
-                          _refresh();
+                          _refresh(true, false, null, null, -1);
                         },
                         child: Container(
                             height: 30,
@@ -655,28 +741,29 @@ class _MerchantScreenState extends State<MerchantScreen> {
     );
   }
 
-  Future<void> fetchMyMerchant() async {
+  Future<void> _fetchMyMerchant() async {
     setState(() {
       isLoad = true;
     });
-    final response = await MerchantServices.fetchMyMerchant(false);
+    final response = await MerchantServices.fetchMyMerchant(true, true);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");
       } else {
         print("fetch merchang: ${response['data']['name']}");
-        List merchandiseData = response['data']['merchandise'];
+        Map<String, dynamic> data = response['data'];
+
         // if (mounted) {
         setState(() {
-          merchant = response['data'];
-          landingImage = response['data']['landing_images'];
-          if (merchandiseData.isEmpty) {
+          merchant = data;
+          landingImage = data['landing_images'];
+          if (merchandise.isEmpty) {
             merchandise = ['0'];
-          } else {
-            merchandise = merchandiseData;
           }
         });
         // }
+        _getData(data['ID']);
+        _fetchMerchantdise(data['ID'], null, null, -1);
       }
     } else {
       const SnackBar(content: Text("Something went Wrong"));
@@ -687,16 +774,75 @@ class _MerchantScreenState extends State<MerchantScreen> {
     });
   }
 
-  Future<void> deleteMerchindise(id, name) async {
+  Future _getData(id) async {
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent) {
+        if (!isLoadItem) {
+          _fetchMerchantdise(id, null, null, -1);
+        }
+      }
+    });
+  }
+
+  Future<void> _fetchMerchantdise(merchantId, last, update, index) async {
+    setState(() {
+      isLoadItem = true;
+    });
+    print('HIT merchandise api, id $merchantId, page: $page');
+    final item = await MerchantServices.fetchMerchandise(
+        merchantId, null, page, pageSize, last, update);
+    if (item['data'] != null) {
+      List merchandiseData = item['data'];
+      if (merchandiseData.isNotEmpty) {
+        setState(() {
+          page++;
+          if (merchandise[0] == '0') {
+            merchandise = merchandiseData;
+          } else if (last) {
+            if (index != -1) {
+              merchandise[index] = merchandiseData[0];
+            } else {
+              merchandise.insertAll(0, merchandiseData);
+            }
+          } else {
+            merchandise.addAll(merchandiseData);
+          }
+        });
+      }
+    }
+    setState(() {
+      isLoadItem = false;
+    });
+  }
+
+  Future<void> deleteMerchindise(id, name, index) async {
     final response = await MerchantServices.deleteMerchandise(id);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");
       } else {
+        setState(() {
+          merchandise.removeAt(index);
+        });
         _showAlertDialog("Item [$name] deleted!", "Delete Item");
       }
     } else {
       const SnackBar(content: Text("Something went Wrong"));
+    }
+  }
+
+  Future<void> activateItem(id, isActive, index) async {
+    print("activate item! $id to $isActive");
+    // Contoh menyimpan token setelah login berhasil
+    bool response = await MerchantServices.activateItem(id, isActive);
+    if (!response) {
+      _showAlertDialog("Failed update item!", 'Alert');
+    } else {
+      setState(() {
+        merchandise[index]['active'] = isActive;
+      });
+      _showAlertDialog("Item status updated!", "Update Item");
     }
   }
 }

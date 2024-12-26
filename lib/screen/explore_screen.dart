@@ -86,7 +86,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: "Search...",
+                    hintText: "Search item...",
                     fillColor: const Color.fromARGB(255, 237, 236, 236),
                     filled: true,
                     border: OutlineInputBorder(
@@ -235,7 +235,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   SizedBox itemList(int idx) {
     List itemData = merchantData[idx]['merchant']['merchandise'];
     if (itemData.isNotEmpty) {
-      double hg = 180;
+      double hg = 160;
       if (itemData.length == 1) hg = 110;
       return SizedBox(
           height: hg, // Set height for the entire widget, including ListView
@@ -323,32 +323,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         ))),
                 Padding(
                     padding: const EdgeInsets.only(left: 10),
-                    child: SizedBox(
-                      height: 60, // Atur tinggi kotak scroll
-                      // decoration:
-                      //     BoxDecoration(border: Border.all(color: Colors.grey)),
-                      width: MediaQuery.of(context).size.width - 140,
-                      child: SingleChildScrollView(
-                        child: Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Wrap(
-                              spacing: 5.0, // Jarak horizontal antar kotak
-                              runSpacing: 2.0, // Jarak vertikal antar kotak
-                              children: stringItems
-                                  .map<Widget>((tag) => Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                          border: Border.all(
-                                              color: Colors.blueAccent),
-                                        ),
-                                        child: Text(
-                                            tag), // Gunakan tag untuk menampilkan teks
-                                      ))
-                                  .toList(), // Konversi ke List<Widget>
-                            )),
-                      ),
-                    )),
+                    child: _tagItem(stringItems)),
                 Padding(
                     padding: const EdgeInsets.only(left: 10),
                     child: Text(
@@ -378,6 +353,35 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ],
             )
     ]);
+  }
+
+  SizedBox _tagItem(List<String> stringItems) {
+    return SizedBox(
+      height: 60, // Atur tinggi kotak scroll
+      // decoration:
+      //     BoxDecoration(border: Border.all(color: Colors.grey)),
+      width: MediaQuery.of(context).size.width - 140,
+      child: SingleChildScrollView(
+        child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Wrap(
+              spacing: 5.0, // Jarak horizontal antar kotak
+              runSpacing: 2.0, // Jarak vertikal antar kotak
+              children: stringItems
+                  .map<Widget>((tag) => Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.grey),
+                        ),
+                        child: Text(
+                          tag,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ), // Gunakan tag untuk menampilkan teks
+                      ))
+                  .toList(), // Konversi ke List<Widget>
+            )),
+      ),
+    );
   }
 
   Future<void> _fetchNearestLocations(

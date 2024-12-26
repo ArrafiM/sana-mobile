@@ -32,6 +32,9 @@ class _DetailPointState extends State<DetailPoint> {
   Map user = {};
   Map chatRoom = {};
   String? senderId;
+  int page = 1;
+  int pageSize = 10;
+  bool isLoadItem = false;
 
   List merchandise = ['0'];
 
@@ -106,27 +109,7 @@ class _DetailPointState extends State<DetailPoint> {
                 ? const Center(
                     child: CircularProgressIndicator(),
                   )
-                : ListView.builder(
-                    itemCount: merchandise.length,
-                    padding: const EdgeInsets.only(top: 0),
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return Column(children: [
-                          landingImage.isEmpty
-                              ? const SizedBox.shrink()
-                              : merchantHeader(),
-                          landingImage.isEmpty
-                              ? const SizedBox.shrink()
-                              : sliderIndicator(),
-                          merchantDetail(context),
-                          merchandiseTitle(),
-                          _merchandiseList(index),
-                        ]);
-                      } else {
-                        return _merchandiseList(index);
-                      }
-                    },
-                  )),
+                : _listViewItem()),
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(right: 5, bottom: 5),
           child: FloatingActionButton(
@@ -139,6 +122,34 @@ class _DetailPointState extends State<DetailPoint> {
             child: const Icon(Icons.question_answer),
           ),
         ));
+  }
+
+  ListView _listViewItem() {
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: merchandise.length + (isLoadItem ? 1 : 0),
+      padding: const EdgeInsets.only(top: 0),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Column(children: [
+            landingImage.isEmpty ? const SizedBox.shrink() : merchantHeader(),
+            landingImage.isEmpty ? const SizedBox.shrink() : sliderIndicator(),
+            merchantDetail(context),
+            merchandiseTitle(),
+            _merchandiseList(index),
+          ]);
+        } else if (index < merchandise.length) {
+          return _merchandiseList(index);
+        } else {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+      },
+    );
   }
 
   Container sliderIndicator() {
@@ -311,33 +322,7 @@ class _DetailPointState extends State<DetailPoint> {
                                 fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        SizedBox(
-                          height: 45, // Atur tinggi kotak scroll
-                          // decoration: BoxDecoration(
-                          //     border: Border.all(color: Colors.grey)),
-                          width: MediaQuery.of(context).size.width - 160,
-                          child: SingleChildScrollView(
-                              child: Padding(
-                                  padding: const EdgeInsets.only(top: 10),
-                                  child: Wrap(
-                                    spacing:
-                                        5.0, // Jarak horizontal antar kotak
-                                    runSpacing:
-                                        2.0, // Jarak vertikal antar kotak
-                                    children: stringItems
-                                        .map<Widget>((tag) => Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                border: Border.all(
-                                                    color: Colors.blueAccent),
-                                              ),
-                                              child: Text(
-                                                  tag), // Gunakan tag untuk menampilkan teks
-                                            ))
-                                        .toList(), // Konversi ke List<Widget>
-                                  ))),
-                        ),
+                        _tagItem(stringItems),
                       ],
                     ),
                     Text(
@@ -356,23 +341,49 @@ class _DetailPointState extends State<DetailPoint> {
     }
   }
 
+  SizedBox _tagItem(List<String> stringItems) {
+    return SizedBox(
+      height: 45, // Atur tinggi kotak scroll
+      // decoration: BoxDecoration(
+      //     border: Border.all(color: Colors.grey)),
+      width: MediaQuery.of(context).size.width - 160,
+      child: SingleChildScrollView(
+          child: Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Wrap(
+                spacing: 5.0, // Jarak horizontal antar kotak
+                runSpacing: 2.0, // Jarak vertikal antar kotak
+                children: stringItems
+                    .map<Widget>((tag) => Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(color: Colors.grey),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ))
+                    .toList(), // Konversi ke List<Widget>
+              ))),
+    );
+  }
+
   Future<void> fetchMerchant(id) async {
-    final response = await MerchantServices.fetchMerchantId(id);
+    final response =
+        await MerchantServices.fetchMerchantId(id, true, true, false);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");
       } else {
-        List merchandiseData = response['data']['merchandise'];
         Map userData = response['data']['user'];
         if (mounted) {
           setState(() {
             merchant = response['data'];
             user = userData;
             landingImage = response['data']['landing_images'];
-            if (merchandiseData.isEmpty) {
+            if (merchandise.isEmpty) {
               merchandise = ['0'];
-            } else {
-              merchandise = merchandiseData;
             }
             chatRoom = {
               "ID": 0,
@@ -385,11 +396,50 @@ class _DetailPointState extends State<DetailPoint> {
             isLoad = false;
           });
           fetchGetRoom(userData['ID']);
+
+          _fetchMerchantdise(id);
+          _scrollListener(id);
         }
       }
     } else {
       const SnackBar(content: Text("Something went Wrong"));
     }
+  }
+
+  Future _scrollListener(id) async {
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent) {
+        if (!isLoadItem) {
+          _fetchMerchantdise(id);
+        }
+      }
+    });
+  }
+
+  Future<void> _fetchMerchantdise(merchantId) async {
+    setState(() {
+      isLoadItem = true;
+    });
+    print('HIT merchandise api, id $merchantId, page: $page');
+    final item = await MerchantServices.fetchMerchandise(
+        merchantId, true, page, pageSize, null, null);
+    if (item['data'] != null) {
+      List merchandiseData = item['data'];
+      if (merchandiseData.isNotEmpty) {
+        setState(() {
+          page++;
+          if (merchandise[0] == '0') {
+            merchandise = merchandiseData;
+          } else {
+            merchandise.addAll(merchandiseData);
+          }
+        });
+      }
+    }
+    setState(() {
+      isLoadItem = false;
+    });
   }
 
   Future<void> fetchGetRoom(receiverId) async {

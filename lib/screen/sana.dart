@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/models/detected_location.dart';
 import 'package:geolocator/geolocator.dart';
@@ -48,6 +49,7 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _webSocketConnect();
     _getCurrentLocation();
+    _storeFcmToken();
   }
 
   Future<void> _webSocketConnect() async {
@@ -135,5 +137,25 @@ class _SanaScreenState extends State<SanaScreen> with WidgetsBindingObserver {
               long: long,
             ),
     );
+  }
+
+  Future<String?> getToken() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    // Mendapatkan registration token
+    String? token = await messaging.getToken();
+    print("FCM Registration Token: $token");
+    return token;
+  }
+
+  Future<void> _storeFcmToken() async {
+    String? userid = await UserServices.checkMyId();
+    String? token = await getToken();
+    bool store = await UserServices.storeDevicetoken(userid, token);
+    if (store) {
+      print('token stored');
+    } else {
+      print('failed store token');
+    }
   }
 }

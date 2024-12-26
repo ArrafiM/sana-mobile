@@ -127,6 +127,31 @@ class UserServices {
     }
   }
 
+  static Future storeDevicetoken(userid, token) async {
+    var body = jsonEncode({
+      'user_id': int.parse(userid),
+      'token': token,
+    });
+    String? tokenApi = await UserServices.checkToken();
+    String apiurl = apiUrl();
+    final response = await http.post(
+      Uri.parse('$apiurl/api/devicetokens/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $tokenApi',
+      },
+      body: body,
+    );
+    // final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan: ${response.statusCode}');
+      return false;
+    } else {
+      print('Token stored: true');
+      return true;
+    }
+  }
+
   static String apiUrl() {
     String apiUrl = "${dotenv.env['API_URL']}";
     return apiUrl;

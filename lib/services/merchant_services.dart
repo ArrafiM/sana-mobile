@@ -9,10 +9,13 @@ import 'package:multi_image_picker_plus/multi_image_picker_plus.dart';
 import 'package:path/path.dart' as path;
 
 class MerchantServices {
-  static Future fetchMerchantId(id) async {
+  static Future fetchMerchantId(id, bool user, bool image, bool item) async {
     print("call api merchant id : $id");
     String apiUrl = UserServices.apiUrl();
-    var url = '$apiUrl/api/merchants/$id';
+    var url = '$apiUrl/api/merchants/$id?';
+    if (user) url = '${url}user=true&';
+    if (image) url = '${url}image=true&';
+    if (item) url = '${url}item=true&';
     String? token = await UserServices.checkToken();
     final uri = Uri.parse(url);
     final response = await http.get(uri, headers: {
@@ -29,15 +32,42 @@ class MerchantServices {
     return null;
   }
 
-  static Future fetchMyMerchant(bool isCek) async {
+  static Future fetchMyMerchant(bool isCek, bool image) async {
     print("call api my merchant data");
     String apiUrl = UserServices.apiUrl();
-    var url = '$apiUrl/api/mymerchants';
+    var url = '$apiUrl/api/mymerchants?';
     if (isCek) {
-      url = '$url?cek=true';
+      url = '${url}cek=true&';
+    }
+    if (image) {
+      url = '${url}image=true';
     }
     print("url merchant: $url");
     String? token = await UserServices.checkToken();
+    final uri = Uri.parse(url);
+    final response = await http.get(uri, headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    }).timeout(const Duration(seconds: 30));
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body) as Map;
+      return json;
+    } else if (response.statusCode == 401) {
+      return 401;
+    }
+    return null;
+  }
+
+  static Future fetchMerchandise(merchantId, bool? isActive, int? page,
+      int? pageSize, last, update) async {
+    String? token = await UserServices.checkToken();
+    String apiUrl = UserServices.apiUrl();
+    String url = '$apiUrl/api/merchandise?merchant_id=$merchantId';
+    if (isActive != null) {
+      url = '$url&isactive=$isActive';
+    }
+    url = '$url&page=$page&page_size=$pageSize&last=$last&update=$update';
     final uri = Uri.parse(url);
     final response = await http.get(uri, headers: {
       'Content-Type': 'application/json',
@@ -229,5 +259,23 @@ class MerchantServices {
       return 401;
     }
     return null;
+  }
+
+  static Future activateItem(int id, bool isActive) async {
+    String? token = await UserServices.checkToken();
+    String apiurl = UserServices.apiUrl();
+    var url = Uri.parse('$apiurl/api/merchandise/$id');
+    var request = http.MultipartRequest('PUT', url)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['active'] = isActive.toString();
+    var response = await request.send();
+    // final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan put: merchandise ${response.statusCode}');
+      return false;
+    } else {
+      print('Merchandise Activate update!: $id to [$isActive]');
+      return true;
+    }
   }
 }
