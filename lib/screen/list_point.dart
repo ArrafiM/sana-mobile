@@ -180,7 +180,7 @@ class _ListPointState extends State<ListPoint> {
       _isLoading = true;
     });
     final response = await LocationServices.fetchNearestLocations(
-        lat, long, radius, page, pageSize, null, null);
+        lat, long, radius, page, pageSize, null, null, true);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");

@@ -546,16 +546,24 @@ class _MapSanaState extends State<MapSana> {
 
   Future<void> _fetchNearestLocations(lat, long) async {
     final response = await LocationServices.fetchNearestLocations(
-        lat, long, 2000, 1, 1000, null, null);
+        lat, long, 2000, 1, 1000, null, null, true);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");
         showLogoutDialog(context);
       } else {
         print("fetch location");
+        List<Map<String, dynamic>> activeItems = [];
+
+        // Loop untuk cek item yang is_active == true dan tambahkan ke activeItems
+        for (var item in response['data']) {
+          if (item['merchant'] != null) {
+            activeItems.add(item);
+          }
+        }
         if (mounted) {
           setState(() {
-            pinData = response['data'];
+            pinData = activeItems;
           });
         }
       }

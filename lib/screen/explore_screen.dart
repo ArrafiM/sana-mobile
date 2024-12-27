@@ -391,7 +391,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       _isLoading = true;
     });
     final response = await LocationServices.fetchNearestLocations(
-        lat, long, radius, page, pageSize, search, true);
+        lat, long, radius, page, pageSize, search, true, true);
     if (response != null) {
       if (response == 401) {
         print("Unauthorized 401");
@@ -399,13 +399,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
       } else {
         if (mounted) {
           List resData = response['data'];
+          List activeMerchant = [];
+          for (var item in resData) {
+            if (item['merchant'] != null) {
+              activeMerchant.add(item);
+            }
+          }
           print("fetch location list: ${resData.length}");
           if (resData.isNotEmpty) {
             setState(() {
               if ((page == 1 && search != "") || _isRefresh) {
-                merchantData = resData;
+                merchantData = activeMerchant;
               } else {
-                merchantData.addAll(resData);
+                merchantData.addAll(activeMerchant);
               }
               _page++;
             });
