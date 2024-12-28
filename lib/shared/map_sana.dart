@@ -12,6 +12,7 @@ import 'package:sana_mobile/services/location_services.dart';
 import 'package:sana_mobile/services/merchant_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/logout.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MapSana extends StatefulWidget {
   const MapSana({Key? key, required this.lat, required this.long})
@@ -36,7 +37,6 @@ class _MapSanaState extends State<MapSana> {
   bool isShow = false;
   int indexShow = -1;
   Map merchant = {};
-  Map myMerchant = {};
   bool isLoad = false;
 
   String publicApiUrl = "";
@@ -72,7 +72,7 @@ class _MapSanaState extends State<MapSana> {
   }
 
   void _refreshPage() {
-    _getCurrentLocation();
+    _getCurrentLocation(true);
   }
 
   @override
@@ -424,14 +424,7 @@ class _MapSanaState extends State<MapSana> {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
             onPressed: () {
-              if (myMerchant.isEmpty) {
-                showAlert(
-                    "Alert",
-                    "Cannot post your location, please to create merchant first!",
-                    false);
-              } else {
-                showAlert("Alert", "Share your current location?", true);
-              }
+              _cekMerchantId();
             },
             backgroundColor: Colors.blue,
             child: const Icon(Icons.share_location, color: Colors.white)),
@@ -504,11 +497,12 @@ class _MapSanaState extends State<MapSana> {
                       'ok',
                       style: TextStyle(color: Colors.blue),
                     ),
-              onPressed: () {
-                if (isPost == true) {
-                  _postNewLocation(lat, long);
-                }
+              onPressed: () async {
                 Navigator.pop(context);
+                if (isPost == true) {
+                  await _getCurrentLocation(false);
+                  _postNewLocation();
+                }
               },
             ),
           ],
@@ -517,7 +511,7 @@ class _MapSanaState extends State<MapSana> {
     );
   }
 
-  Future<void> _getCurrentLocation() async {
+  Future<void> _getCurrentLocation(isRefresh) async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -530,14 +524,16 @@ class _MapSanaState extends State<MapSana> {
       print("Location latlong updated!");
       print('latitude: $lat, longitude: $long ');
 
-      if (mounted) {
-        setState(() {
-          lat = position.latitude;
-          long = position.longitude;
-        });
-      }
+      // if (mounted) {
+      setState(() {
+        lat = position.latitude;
+        long = position.longitude;
+      });
+      // }
 
-      if (lat != 0.0 || long != 0.0) _fetchNearestLocations(lat, long);
+      if (isRefresh && (lat != 0.0 || long != 0.0)) {
+        _fetchNearestLocations(lat, long);
+      }
     } else {
       // Handle case where permission is denied
       print("Location permission denied");
@@ -553,17 +549,17 @@ class _MapSanaState extends State<MapSana> {
         showLogoutDialog(context);
       } else {
         print("fetch location");
-        List<Map<String, dynamic>> activeItems = [];
+        // List<Map<String, dynamic>> activeItems = [];
 
         // Loop untuk cek item yang is_active == true dan tambahkan ke activeItems
-        for (var item in response['data']) {
-          if (item['merchant'] != null) {
-            activeItems.add(item);
-          }
-        }
+        // for (var item in response['data']) {
+        //   if (item['merchant'] != null) {
+        //     activeItems.add(item);
+        //   }
+        // }
         if (mounted) {
           setState(() {
-            pinData = activeItems;
+            pinData = response['data'];
           });
         }
       }
@@ -578,26 +574,21 @@ class _MapSanaState extends State<MapSana> {
       if (response == 401) {
         print("Unauthorized 401");
       } else {
-        print("fetch merchang: ${response['data']['name']}");
-        setState(() {
-          myMerchant = response['data'];
-        });
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String merchantId = response['data']['ID'].toString();
+        await prefs.setString('merchant_id', merchantId);
       }
     } else {
       const SnackBar(content: Text("Something went Wrong"));
     }
   }
 
-  Future<int> _postNewLocation(lat, long) async {
+  Future<int> _postNewLocation() async {
     setState(() {
       isLoad = true;
     });
-    // Contoh menyimpan token setelah login berhasil
     int response = await LocationServices.postMylocation(lat, long);
     print("new location updated: $response");
-    setState(() {
-      isLoad = false;
-    });
     if (response != 200) {
       if (response == 401) {
         showLogoutDialog(context);
@@ -607,7 +598,22 @@ class _MapSanaState extends State<MapSana> {
     } else {
       showAlert("Post location", "Success post your location!", false);
     }
-
+    setState(() {
+      isLoad = false;
+    });
     return response;
+  }
+
+  Future<void> _cekMerchantId() async {
+    String? merchantId = await UserServices.checkMerchantId();
+    print("merchant id storage: $merchantId");
+    if (merchantId == null) {
+      showAlert(
+          "Alert",
+          "Cannot post your location.\nPlease to create merchant first!",
+          false);
+    } else {
+      showAlert("Confirmation", "Share your current location?", true);
+    }
   }
 }

@@ -161,7 +161,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               items.isNotEmpty
                                   ? _merchantClick(index)
                                   : const SizedBox.shrink(),
-                              itemList(index),
+                              _ItemClick(index),
                               Divider(color: Colors.grey[300]),
                             ],
                           ));
@@ -173,7 +173,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           items.isNotEmpty
                               ? _merchantClick(index)
                               : const SizedBox.shrink(),
-                          itemList(index),
+                          _ItemClick(index),
                           Divider(color: Colors.grey[300]),
                         ],
                       );
@@ -192,6 +192,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
         );
       },
       child: merchantList(index),
+    );
+  }
+
+  GestureDetector _ItemClick(index) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => DetailPoint(point: merchantData[index])),
+        );
+      },
+      child: itemList(index),
     );
   }
 
@@ -399,19 +412,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
       } else {
         if (mounted) {
           List resData = response['data'];
-          List activeMerchant = [];
-          for (var item in resData) {
-            if (item['merchant'] != null) {
-              activeMerchant.add(item);
-            }
-          }
+          // List activeMerchant = [];
+          // for (var item in resData) {
+          //   if (item['merchant'] != null) {
+          //     activeMerchant.add(item);
+          //   }
+          // }
           print("fetch location list: ${resData.length}");
           if (resData.isNotEmpty) {
             setState(() {
               if ((page == 1 && search != "") || _isRefresh) {
-                merchantData = activeMerchant;
+                merchantData = resData;
               } else {
-                merchantData.addAll(activeMerchant);
+                merchantData.addAll(resData);
               }
               _page++;
             });

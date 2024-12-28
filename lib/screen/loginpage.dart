@@ -16,6 +16,7 @@ class _LoginFormState extends State<LoginForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  String publicApiUrl = "${UserServices.apiUrl()}/public/";
 
   @override
   void dispose() {
@@ -104,12 +105,20 @@ class _LoginFormState extends State<LoginForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Title text 'login'
+          SizedBox(
+            width: 80,
+            height: 80,
+            child: Image.network(
+              '${publicApiUrl}appsana/sana_icon3new.png',
+              // fit: BoxFit.cover,
+            ),
+          ),
           const Text(
-            'Login',
+            'SANA',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 10),
 
           // Email field
           Column(

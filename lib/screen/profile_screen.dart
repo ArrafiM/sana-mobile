@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:sana_mobile/screen/changepass_screen.dart';
+import 'package:sana_mobile/screen/feedback_screen.dart';
 import 'package:sana_mobile/screen/profileupdate_screen.dart';
 import 'package:sana_mobile/services/user_services.dart';
 import 'package:sana_mobile/shared/logout.dart';
@@ -167,29 +168,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ],
                     ),
-                    GestureDetector(
-                        onTap: () {
-                          print("logout?");
-                          showLogoutConfirmDialog(context);
-                        },
-                        child: SizedBox(
-                            height: 30,
-                            width: MediaQuery.of(context).size.width,
-                            child: const Row(
-                              children: [
-                                Icon(
-                                  Icons.logout_outlined,
-                                  color: Colors.red,
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(left: 5),
-                                  child: Text(
-                                    "Logout",
-                                    style: TextStyle(color: Colors.red),
+                    SizedBox(
+                      height: 30,
+                      width: MediaQuery.of(context).size.width,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              print("logout?");
+                              showLogoutConfirmDialog(context);
+                            },
+                            child: const SizedBox(
+                              height: 30,
+                              width: 80,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.logout_outlined,
+                                    color: Colors.red,
                                   ),
-                                )
-                              ],
-                            ))),
+                                  Padding(
+                                    padding: EdgeInsets.only(left: 5),
+                                    child: Text(
+                                      "Logout",
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      FeedbackScreen(email: userData['email']),
+                                ),
+                              );
+                            },
+                            child: const SizedBox(
+                                height: 30,
+                                width: 100,
+                                child: Center(
+                                  child: Text(
+                                    "Input feedback",
+                                    style: TextStyle(color: Colors.blue),
+                                  ),
+                                )),
+                          ),
+                        ],
+                      ),
+                    )
                   ],
                 )))
       ],

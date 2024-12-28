@@ -122,7 +122,7 @@ class UserServices {
       print('Terjadi kesalahan: ${response.statusCode}');
       return json;
     } else {
-      print('register success!');
+      print('password success updated!');
       return json;
     }
   }
@@ -149,6 +149,31 @@ class UserServices {
     } else {
       print('Token stored: true');
       return true;
+    }
+  }
+
+  static Future feedback(data) async {
+    var body = jsonEncode({
+      'email': data['email'],
+      'properties': data['properties'],
+    });
+    String? token = await UserServices.checkToken();
+    String apiurl = apiUrl();
+    final response = await http.post(
+      Uri.parse('$apiurl/api/feedback'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+    final json = jsonDecode(response.body) as Map;
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan: ${response.statusCode}');
+      return json;
+    } else {
+      print('feedback success stored!');
+      return json;
     }
   }
 
@@ -180,7 +205,13 @@ class UserServices {
 
   static Future<void> handleUnauthorized() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token'); // Hapus token dari SharedPreferences
+    await prefs.remove('token');
+    await prefs.remove('merchant_id');
     // Navigasi ke halaman login
+  }
+
+  static Future<String?> checkMerchantId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('merchant_id');
   }
 }

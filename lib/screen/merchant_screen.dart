@@ -41,6 +41,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
   int page = 1;
   int pageSize = 10;
   List merchandise = [];
+  bool isOpen = false;
 
   @override
   void initState() {
@@ -134,12 +135,16 @@ class _MerchantScreenState extends State<MerchantScreen> {
               ),
               onPressed: () async {
                 Navigator.pop(context);
-                if (name.isNotEmpty) {
+                if (index == null) {
+                  await activateMerchant(id, isActive);
+                  // _refresh(true, false, null, null, -1);
+                } else if (name.isNotEmpty) {
                   await deleteMerchindise(id, name, index);
+                  // _refresh(false, true, null, null, -1);
                 } else {
                   await activateItem(id, isActive, index);
+                  // _refresh(false, true, null, null, -1);
                 }
-                _refresh(false, true, null, null, -1);
               },
             ),
           ],
@@ -289,9 +294,9 @@ class _MerchantScreenState extends State<MerchantScreen> {
   Container merchandiseTitle() {
     return Container(
         decoration: const BoxDecoration(color: Colors.white),
-        height: 35,
+        height: 20,
         child: const Padding(
-          padding: EdgeInsets.only(top: 10, left: 10),
+          padding: EdgeInsets.only(left: 10),
           child: Align(
             alignment: Alignment.topLeft,
             child: Text(
@@ -317,27 +322,34 @@ class _MerchantScreenState extends State<MerchantScreen> {
   Container merchantDetail(BuildContext context) {
     return Container(
         decoration: const BoxDecoration(color: Colors.white),
-        height: 120,
+        height: 135,
         child: Padding(
-          padding: const EdgeInsets.only(left: 5, bottom: 20),
+          padding: const EdgeInsets.only(left: 5, bottom: 5),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             // mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               if (merchant['picture'] != "")
-                CircleAvatar(
-                  backgroundImage: CachedNetworkImageProvider(
-                      publicApiUrl + merchant['picture']),
-                  radius: 50,
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: CircleAvatar(
+                    backgroundImage: CachedNetworkImageProvider(
+                        publicApiUrl + merchant['picture']),
+                    radius: 50,
+                  ),
                 )
               else
-                const CircleAvatar(
-                  backgroundImage: AssetImage("assets/photos/slogo.png"),
-                  radius: 50,
+                const Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: CircleAvatar(
+                    backgroundImage: AssetImage("assets/photos/slogo.png"),
+                    radius: 50,
+                  ),
                 ),
               Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.only(left: 10, top: 10),
                 child: SizedBox(
+                  // height: 135,
                   // decoration: BoxDecoration(color: Colors.grey[600]),
                   width: MediaQuery.of(context).size.width - 160,
                   child: Column(
@@ -348,10 +360,19 @@ class _MerchantScreenState extends State<MerchantScreen> {
                         style: const TextStyle(
                             fontSize: 15, fontWeight: FontWeight.bold),
                       ),
-                      Text(
-                        "${merchant['description']}",
-                        style: const TextStyle(fontSize: 12),
+                      SizedBox(
+                        height: 63, // Atur tinggi kotak scroll
+                        // decoration: BoxDecoration(
+                        //     border: Border.all(color: Colors.blue)),
+                        width: MediaQuery.of(context).size.width - 160,
+                        child: SingleChildScrollView(
+                          child: Text(
+                            "${merchant['description']}",
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
                       ),
+                      openClose()
                     ],
                   ),
                 ),
@@ -359,6 +380,57 @@ class _MerchantScreenState extends State<MerchantScreen> {
             ],
           ),
         ));
+  }
+
+  Padding openClose() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: GestureDetector(
+        onTap: () async {
+          print("open?");
+          bool status = true;
+          String title = "Confirmation";
+          String content = "Set merchant to [Open]?";
+          if (status == isOpen) {
+            status = false;
+            content = "Set merchant to [Close]?";
+          }
+          await showConfirm(
+            null,
+            merchant['ID'],
+            title,
+            content,
+            "",
+            status,
+          );
+        },
+        child: Container(
+          height: 20,
+          width: 60,
+          decoration: BoxDecoration(
+            color: isOpen ? Colors.green : Colors.grey, // Warna latar belakang
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.5),
+                spreadRadius: 0.5,
+                blurRadius: 1,
+                offset: const Offset(2, 3),
+              ),
+            ],
+          ),
+          child: Center(
+              child: Text(
+            isOpen ? 'Open' : 'Close',
+            style: const TextStyle(
+              color: Colors.white, // Warna teks
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          )),
+        ),
+      ),
+    );
   }
 
   Stack imageSlider() {
@@ -444,13 +516,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                 fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        SizedBox(
-                          height: 45, // Atur tinggi kotak scroll
-                          // decoration: BoxDecoration(
-                          //     border: Border.all(color: Colors.grey)),
-                          width: MediaQuery.of(context).size.width - 160,
-                          child: tagItem(stringItems),
-                        ),
+                        tagItem(stringItems),
                       ],
                     ),
                     SizedBox(
@@ -493,8 +559,15 @@ class _MerchantScreenState extends State<MerchantScreen> {
                                 color: isActive
                                     ? Colors.blue
                                     : Colors.grey, // Warna latar belakang
-                                borderRadius: BorderRadius.circular(
-                                    20), // Membuat latar berbentuk lingkaran
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withValues(alpha: 0.5),
+                                    spreadRadius: 0.5,
+                                    blurRadius: 1,
+                                    offset: const Offset(2, 3),
+                                  ),
+                                ],
                               ),
                               child: Center(
                                   child: Text(
@@ -564,26 +637,32 @@ class _MerchantScreenState extends State<MerchantScreen> {
     }
   }
 
-  SingleChildScrollView tagItem(List<String> stringItems) {
-    return SingleChildScrollView(
-        child: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Wrap(
-              spacing: 5.0, // Jarak horizontal antar kotak
-              runSpacing: 2.0, // Jarak vertikal antar kotak
-              children: stringItems
-                  .map<Widget>((tag) => Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(color: Colors.grey),
-                        ),
-                        child: Text(
-                          tag,
-                          style: TextStyle(color: Colors.grey[600]),
-                        ), // Gunakan tag untuk menampilkan teks
-                      ))
-                  .toList(), // Konversi ke List<Widget>
-            )));
+  SizedBox tagItem(List<String> stringItems) {
+    return SizedBox(
+      height: 45, // Atur tinggi kotak scroll
+      // decoration: BoxDecoration(
+      //     border: Border.all(color: Colors.grey)),
+      width: MediaQuery.of(context).size.width - 160,
+      child: SingleChildScrollView(
+          child: Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Wrap(
+                spacing: 5.0, // Jarak horizontal antar kotak
+                runSpacing: 2.0, // Jarak vertikal antar kotak
+                children: stringItems
+                    .map<Widget>((tag) => Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(color: Colors.grey),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(color: Colors.grey[600]),
+                          ), // Gunakan tag untuk menampilkan teks
+                        ))
+                    .toList(), // Konversi ke List<Widget>
+              ))),
+    );
   }
 
   String formatCurrency(double amount) {
@@ -752,6 +831,7 @@ class _MerchantScreenState extends State<MerchantScreen> {
       } else {
         print("fetch merchang: ${response['data']['name']}");
         Map<String, dynamic> data = response['data'];
+        String status = data['status'];
 
         // if (mounted) {
         setState(() {
@@ -759,6 +839,9 @@ class _MerchantScreenState extends State<MerchantScreen> {
           landingImage = data['landing_images'];
           if (merchandise.isEmpty) {
             merchandise = ['0'];
+          }
+          if (status == 'active') {
+            isOpen = true;
           }
         });
         // }
@@ -843,6 +926,25 @@ class _MerchantScreenState extends State<MerchantScreen> {
         merchandise[index]['active'] = isActive;
       });
       _showAlertDialog("Item status updated!", "Update Item");
+    }
+  }
+
+  Future<void> activateMerchant(id, isActive) async {
+    print("activate merchant! $id to $isActive");
+    String status = 'inactive';
+    if (isActive) status = 'active';
+    bool response = await MerchantServices.activeMerchant(id, status);
+    if (!response) {
+      _showAlertDialog("Failed update merchant!", 'Alert');
+    } else {
+      setState(() {
+        if (isActive) {
+          isOpen = true;
+        } else {
+          isOpen = false;
+        }
+      });
+      _showAlertDialog("Merchant status updated!", "Update Merchant");
     }
   }
 }

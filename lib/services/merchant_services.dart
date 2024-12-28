@@ -7,6 +7,7 @@ import 'package:sana_mobile/services/helper_services.dart';
 import 'package:sana_mobile/services/user_services.dart';
 import 'package:multi_image_picker_plus/multi_image_picker_plus.dart';
 import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MerchantServices {
   static Future fetchMerchantId(id, bool user, bool image, bool item) async {
@@ -91,6 +92,7 @@ class MerchantServices {
       ..headers['Authorization'] = 'Bearer $token'
       ..fields['name'] = name
       ..fields['description'] = desc
+      ..fields['status'] = 'inactive'
       ..files.add(
         await http.MultipartFile.fromPath(
           'picture',
@@ -98,12 +100,18 @@ class MerchantServices {
         ),
       );
     var response = await request.send();
-    // final json = jsonDecode(response.body) as Map;
+
     if (response.statusCode != 201) {
       print('Terjadi kesalahan: ${response.statusCode}');
       return false;
     } else {
       print('Merchant created!: $name');
+      var responseData = await http.Response.fromStream(response);
+      final json = jsonDecode(responseData.body) as Map;
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String merchantId = json['data']['ID'].toString();
+      print('save merchant id to local storage: $merchantId');
+      await prefs.setString('merchant_id', merchantId);
       return true;
     }
   }
@@ -275,6 +283,23 @@ class MerchantServices {
       return false;
     } else {
       print('Merchandise Activate update!: $id to [$isActive]');
+      return true;
+    }
+  }
+
+  static Future activeMerchant(int id, String status) async {
+    String? token = await UserServices.checkToken();
+    String apiurl = UserServices.apiUrl();
+    var url = Uri.parse('$apiurl/api/merchants/$id');
+    var request = http.MultipartRequest('PUT', url)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['status'] = status;
+    var response = await request.send();
+    if (response.statusCode != 200) {
+      print('Terjadi kesalahan: ${response.statusCode}');
+      return false;
+    } else {
+      print('Merchant active!: $status');
       return true;
     }
   }

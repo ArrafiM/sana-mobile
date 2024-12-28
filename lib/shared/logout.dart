@@ -89,5 +89,6 @@ void _logout() async {
   final socketService = SocketService();
   await prefs.remove('token');
   await prefs.remove('user_id');
+  await prefs.remove('merchant_id');
   socketService.disconnect(); // Disconnect the WebSocket
 }
