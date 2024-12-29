@@ -161,8 +161,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               items.isNotEmpty
                                   ? _merchantClick(index)
                                   : const SizedBox.shrink(),
-                              _ItemClick(index),
-                              Divider(color: Colors.grey[300]),
+                              _itemClick(index),
                             ],
                           ));
                     } else {
@@ -173,8 +172,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           items.isNotEmpty
                               ? _merchantClick(index)
                               : const SizedBox.shrink(),
-                          _ItemClick(index),
-                          Divider(color: Colors.grey[300]),
+                          _itemClick(index),
                         ],
                       );
                     }
@@ -195,7 +193,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  GestureDetector _ItemClick(index) {
+  GestureDetector _itemClick(index) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -248,8 +246,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   SizedBox itemList(int idx) {
     List itemData = merchantData[idx]['merchant']['merchandise'];
     if (itemData.isNotEmpty) {
-      double hg = 160;
-      if (itemData.length == 1) hg = 110;
+      double hg = 171;
+      if (itemData.length == 1) hg = 121;
       return SizedBox(
           height: hg, // Set height for the entire widget, including ListView
           child: Column(
@@ -263,9 +261,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   )),
               itemData.length > 1
                   ? Column(children: [
-                      // Padding(
-                      //     padding: const EdgeInsets.only(left: 10),
-                      //     child: Divider(color: Colors.grey[300])),
                       SizedBox(
                         height: 50, // Height specifically for the ListView
                         child: ListView.separated(
@@ -285,7 +280,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             }),
                       )
                     ])
-                  : const SizedBox.shrink()
+                  : const SizedBox.shrink(),
+              Divider(color: Colors.grey[300]),
             ],
           ));
     } else {

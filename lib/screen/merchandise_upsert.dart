@@ -140,10 +140,7 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
     );
   }
 
-  void _createItem() {
-    setState(() {
-      isLoad = true;
-    });
+  void _createItem() async {
     String name = _nameController.text.trim();
     String description = _descriptionController.text.trim();
     String price = _priceController.text.trim();
@@ -163,10 +160,13 @@ class _MerchandiseUpsertState extends State<MerchandiseUpsert> {
     print('name: $name');
 
     // Add your login logic here (e.g., API call)
+    setState(() {
+      isLoad = true;
+    });
     if (merchandiseId == 0) {
-      _postMerchandise(context, name, description, price);
+      await _postMerchandise(context, name, description, price);
     } else {
-      _putMerchandise(context, name, description, price);
+      await _putMerchandise(context, name, description, price);
     }
     setState(() {
       isLoad = false;

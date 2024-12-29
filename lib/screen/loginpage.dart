@@ -17,6 +17,7 @@ class _LoginFormState extends State<LoginForm> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   String publicApiUrl = "${UserServices.apiUrl()}/public/";
+  bool isLoad = false;
 
   @override
   void dispose() {
@@ -59,7 +60,7 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
-  void _login() {
+  void _login() async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
@@ -80,7 +81,13 @@ class _LoginFormState extends State<LoginForm> {
     print('Password: $password');
 
     // Add your login logic here (e.g., API call)
-    _fetchLogin(context, email, password);
+    setState(() {
+      isLoad = true;
+    });
+    await _fetchLogin(context, email, password);
+    setState(() {
+      isLoad = false;
+    });
   }
 
   @override
@@ -106,13 +113,9 @@ class _LoginFormState extends State<LoginForm> {
         children: [
           // Title text 'login'
           SizedBox(
-            width: 80,
-            height: 80,
-            child: Image.network(
-              '${publicApiUrl}appsana/sana_icon3new.png',
-              // fit: BoxFit.cover,
-            ),
-          ),
+              width: 80,
+              height: 80,
+              child: Image.asset('assets/logo/sana_icon3new.png')),
           const Text(
             'SANA',
             textAlign: TextAlign.center,
@@ -191,12 +194,20 @@ class _LoginFormState extends State<LoginForm> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _login,
+              onPressed: () {
+                if (isLoad == false) {
+                  _login();
+                }
+              },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue, // Text color
               ),
-              child: const Text('Login'),
+              child: !isLoad
+                  ? const Text('Login')
+                  : const CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
             ),
           ),
 

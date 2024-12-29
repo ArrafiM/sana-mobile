@@ -27,6 +27,7 @@ class _MerchantCreateState extends State<MerchantCreate> {
   File? _image;
   String pathImage = '';
   int merchantId = 0;
+  bool isLoad = false;
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(ImageSource source) async {
@@ -122,7 +123,7 @@ class _MerchantCreateState extends State<MerchantCreate> {
     );
   }
 
-  void _createMerchant() {
+  void _createMerchant() async {
     String name = _nameController.text.trim();
     String description = _descriptionController.text.trim();
 
@@ -141,12 +142,18 @@ class _MerchantCreateState extends State<MerchantCreate> {
     print('name: $name');
 
     // Add your login logic here (e.g., API call)
+    setState(() {
+      isLoad = true;
+    });
     if (merchantId == 0) {
-      _postMerchant(context, name, description, _image);
+      await _postMerchant(context, name, description, _image);
     } else {
       print("update merchant id: $merchantId");
-      _putMerchant(context, name, description, _image);
+      await _putMerchant(context, name, description, _image);
     }
+    setState(() {
+      isLoad = false;
+    });
   }
 
   @override
@@ -331,12 +338,20 @@ class _MerchantCreateState extends State<MerchantCreate> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _createMerchant,
+              onPressed: () {
+                if (!isLoad) {
+                  _createMerchant();
+                }
+              },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue, // Text color
               ),
-              child: const Text('Save'),
+              child: !isLoad
+                  ? const Text('Save')
+                  : const CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
             ),
           ),
         ],

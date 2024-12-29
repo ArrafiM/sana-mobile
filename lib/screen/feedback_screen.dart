@@ -14,6 +14,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   String? myId = '';
   String email = '';
+  bool isLoad = false;
 
   @override
   void initState() {
@@ -59,7 +60,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     );
   }
 
-  void validateFeedback() {
+  void validateFeedback() async {
     String properties = _propertiesController.text.trim();
 
     // Check if fields are empty
@@ -72,8 +73,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       'email': email,
       'properties': properties,
     };
-
-    _storeFeedback(context, inputData);
+    setState(() {
+      isLoad = true;
+    });
+    await _storeFeedback(context, inputData);
+    setState(() {
+      isLoad = false;
+    });
   }
 
   @override
@@ -144,12 +150,20 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: validateFeedback,
+              onPressed: () {
+                if (!isLoad) {
+                  validateFeedback();
+                }
+              },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue, // Text color
               ),
-              child: const Text('Save'),
+              child: !isLoad
+                  ? const Text('Save')
+                  : const CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
             ),
           ),
         ],
@@ -164,7 +178,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     if (response['error'] != null) {
       _showAlertDialog(response['error'], true, 'Alert');
     } else {
-      _showAlertDialog("Thank you for feedback!", false, 'Successfully');
+      _showAlertDialog("Thank you for your feedback!", false, 'Successfully');
     }
     ;
   }
